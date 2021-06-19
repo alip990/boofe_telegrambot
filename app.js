@@ -1,46 +1,73 @@
 //const config = require('config');
-const { Telegraf } = require('telegraf')
+const { Telegraf ,Markup} = require('telegraf')
 const  mongoose = require ('mongoose')
 const Admin = require ('./models/admin')
 const Kala = require('./models/kala')
 const User = require ('./models/user')
-let State = class  {
-    constructor(){
-        this.NOTHING = 'Nothing' ;
-        this.ADMIN ={ MAKEMEADMIN : 'MakeMeAdmin' , 
-                      ADDNEWKALA:{ NAME : 'AddNewKalaName',  PRICE :'AddNewKalaPrice' ,QUANTITY :'AddNewKalaQuanntity'}
-        }
-    }
-};
+const state  = require('./models/state') ; 
+const adminController = require('./controller/AdminController');
+const userController  = require('./controller/UserController')
+const kalaController  = require('./controller/KalaController')
 
 mongoose.connect('mongodb://localhost/mydatabase')
 .then(()=> console.log('connected to MongoDB ..'))
 .catch(err => console.log('could not connect to database'))
 
-
-
 const Token = "1807114273:AAEOmls4fpqmYC5dlX8gzsye97Orlh7XLss"//config.get('bot.Token') 
-async function checkDBconnection(){
-    return
-}
-
-async function createAdmin(){
-
-}
-
-async function addnewkala(x){
-
-
-    const kala =  await new Kala (x) ; 
-    await kala.save()
-    console.log(kala)
-    return kala 
-}
-const state = new State() ;
-
+// const state = new State() ;
 
 const bot = new Telegraf(Token)
-bot.command('start', (ctx) => ctx.reply(' hi '))
+
+const requestPhoneKeyboard = {
+    "reply_markup": {
+        "one_time_keyboard": true,
+        "keyboard": [
+            [{
+                text: "My phone number",
+                request_contact: true,
+                one_time_keyboard: true
+            }],
+            ["Cancel"]
+        ]
+    }
+};
+
+
+bot.hears('phone', async(ctx, next) => {
+    await bot.telegram.sendMessage(ctx.chat.id, 'Can we get access to your phone number?', requestPhoneKeyboard);
+
+
+})
+
+const startKeyBoard = {
+    "reply_markup": {
+        "one_time_keyboard": true,
+        "keyboard": [
+            [{
+                text: "لیست خوراکی ها ",
+                one_time_keyboard: true , 
+                callback_data : '/showkalas'
+            }],
+            ["Cancel"]
+        ]
+    }
+};
+
+bot.command('start',async (ctx) =>{
+    var user = await User.findOne({chatId : ctx.chat.id}) ; 
+    if( ! user ){
+        user = new User({
+                        name : ctx.chat.first_name + ctx.chat.last_name , 
+                        chatId : ctx.chat.id , 
+                        state : state.USER.WAITEFORPHONE });     
+        user.save()
+        bot.telegram.sendMessage(ctx.chat.id, 'Can we get access to your phone number?', requestPhoneKeyboard);
+    }else{    
+
+    bot.telegram.sendMessage(ctx.chat.id, 'Hello What can I do for you', startKeyBoard);
+    }
+
+})
 bot.command('MakeMeAdmin',async (ctx)=>{    
         admin = await Admin.find({
             chatId : ctx.chat.id
@@ -49,6 +76,7 @@ bot.command('MakeMeAdmin',async (ctx)=>{
             admin = new Admin({
                 name: ctx.chat.first_name+ ctx.chat.last_name ,
                 chatId : ctx.chat.id , 
+                username :ctx.chat.username , 
                 state : state.ADMIN.MAKEMEADMIN
             }) 
             await admin.save();
@@ -56,13 +84,11 @@ bot.command('MakeMeAdmin',async (ctx)=>{
         }else{
             console.log('you were admin ')
         }
-
     })
 bot.command('addnewkala', async(ctx) => {
     admin = await Admin.find({
         chatId :ctx.chat.id
     })
-    console.log(admin[0])
     if (admin.length == 0 ){
         ctx.reply('your are not admin')
         return
@@ -72,109 +98,52 @@ bot.command('addnewkala', async(ctx) => {
     ctx.reply('enter new kala name')
 
 })
+async function predicateFn (callbackData) {
+    if (callbackData === "back")
+        return true  ; 
+    const kalas = await Kala.find() ;
+    for(kala in kalas ){
+        if (kala.name === callbackData)
+            return true ;
+        
+    }
+ }
+bot.action(predicateFn,  (ctx) => {
+    ctx.reply(ctx.update.callback_query.data);
+    userController.buy_kala(ctx , kalaname = ctx.update.callback_query.data);
+
+    
+
+}) ; 
+
 bot.command('showkalas' , async(ctx)=>{
-    const kalas = await Kala.find () ;
-    ctx.reply((kalas)) ; 
-
-    bot.telegram.sendMessage(ctx.chat.id, "salam", {
-        reply_markup: {
-            inline_keyboard: [
-                [{
-                        text: "چیپس سرکه چیتوز",
-                        callback_data: 'dog'
-                    },
-                    {
-                        text: "پفک نمکی چی توز",
-                        callback_data: 'cat'
-                    },
-                ],[{
-                        text: "چیپس سرکه چیتوز",
-                        callback_data: 'dog'
-                    },
-                    {
-                        text: "چیپس سرکه چیتوز",
-                        callback_data: 'dog'
-                    },
-                ],[{
-                        text: "چیپس سرکه چیتوز",
-                        callback_data: 'dog'
-                    },
-                    {
-                        text: "چیپس سرکه چیتوز",
-                        callback_data: 'dog'
-                    },
-                ],[{
-                        text: "چیپس سرکه چیتوز",
-                        callback_data: 'dog'
-                    },
-                    {
-                        text: "چیپس سرکه چیتوز",
-                        callback_data: 'dog'
-                    },
-                ],[ {
-                        text: "چیپس سرکه چیتوز",
-                        callback_data: 'dog'
-                    },
-                    {
-                        text: "چیپس سرکه چیتوز",
-                        callback_data: 'dog'
-                    },{
-                        text: "چیپس سرکه چیتوز",
-                        callback_data: 'dog'
-                    }
-                ],
-
-            ]
-        }
-    })
+    kalaController.showkalasInline(ctx); 
+    await User.update({chatId :ctx.chat.id , state :state.USER.BUYKALA })
+   
 })
 
 
-var   kala_stack =[] ; 
+
+bot.on("contact",async (ctx)=>{
+
+    user =  await User.findOne({chatId : ctx.chat.id }); 
+    if (user.state == state.WAITEFORPHONE){
+        user.phone =ctx.message.contact.phone_number ;
+        user.state =state.NOTHING ;
+    }else {
+        ctx.reply('I dont neet your phone number ')
+    }
+})
+
 
 bot.on('text', async (ctx) => {
-    admin = await Admin.findOne({
-        chatId :ctx.chat.id
-    })
+    admin = await Admin.findOne({chatId :ctx.chat.id })
     console.log(admin)
-    if (admin ){ 
-        if (admin.state == state.ADMIN.ADDNEWKALA.NAME ){
-        kala_stack.push(ctx.message.text) ;
-        console.log(ctx.message.text) ; 
-        admin.state = state.ADMIN.ADDNEWKALA.PRICE ; 
-        await admin.save();
-        ctx.reply('enter price of ' + ctx.message.text);
-        return
+    if (admin ){ //add new kala 
+        adminController.addNewKala(ctx , admin) ; 
+    }else {
 
-        }else if(admin.state == state.ADMIN.ADDNEWKALA.PRICE){
-            try {
-                kala_stack.push(parseInt(ctx.message.text)) ; 
-            }catch(err) {
-                ctx.reply('you should enter number not text ' ) ;
-                return ; 
-                
-            }
-            ctx.reply('enter quntity ') ; 
-            admin.state = state.ADMIN.ADDNEWKALA.QUANTITY 
-            await admin.save();    
-        }    
-        else if(admin.state == state.ADMIN.ADDNEWKALA.QUANTITY){
-            try {
-                kala_stack.push(parseInt(ctx.message.text)) ; 
-            }catch(err) {
-                ctx.reply('you should enter number not text ' ) ;
-                return ; 
-                
-            }
-            admin.state = state.NOTHING
-            await admin.save();    
-            kala = new Kala();
-            kala.availbequantity = kala_stack.pop();
-            kala.price = kala_stack.pop();
-            kala.name = kala_stack.pop();
-            await kala.save()
-            ctx.reply('kala added succesfully') ; 
-        }   
+
     }
 })
 
@@ -186,13 +155,3 @@ bot.launch()
 // process.once('SIGTERM', () => bot.stop('SIGTERM'))
 
   
-async function getCourses(){
-
-    const courses = await Course
-    //.find({author :''})
-    //.find({price : {$gt : 10 } })
-    .find({author : /^Mosh/})
-   // .find({price {$in : [10,15, 20]}})
-    console.log(courses)
-    
-}
