@@ -3,7 +3,9 @@ const  State = class  {
         this.NOTHING = 'Nothing' ;
         this.ADMIN ={ MAKEMEADMIN : 'MakeMeAdmin' , 
                       ADDNEWKALA:{ NAME : 'AddNewKalaName',  PRICE :'AddNewKalaPrice' ,QUANTITY :'AddNewKalaQuanntity'},
-                      DELETEKALA : 'DELTEKALA'
+                      DELETEKALA : 'DELTEKALA',
+                      CHANGEDETAIL:{ENTERNAME :'ChangeDetailEnterName' ,NAME:'ChangeDetailName', PRICE : 'ChangeDetailPrice'} ,
+                      ADDQUNTITY: { NAME :"AddQuantityName" , QUANTITY:'AddQuantiryQuantity'}
         }
         this.USER ={
             WAITEFORPHONE :'WaitForPhone' , 
