@@ -1,8 +1,11 @@
 const state  = require('../models/state') ; 
-const  mongoose = require ('mongoose')
-const Admin = require ('../models/admin')
-const Kala = require('../models/kala')
-const User = require ('../models/user')
+const  mongoose = require ('mongoose');
+const Admin = require ('../models/admin') ;
+const Kala = require('../models/kala') ;
+const User = require ('../models/user') ;
+const Buyeditem = require('../models/buyeditem') ; 
+const BuyedItem = require('../models/buyeditem');
+
 class AdminController{
     constructor(){
         this.kala_stack =[] ;
@@ -106,7 +109,7 @@ class AdminController{
                     kala.name = new_name ; 
                     kala.price = pr ; 
                     await kala.save() ; 
-                    await this.clearState();
+                    await this.clearState(admin);
                     ctx.reply(kala.name+ " changed successfully")
                 }else {
                     ctx.reply('you should enter number not text ' ) ;
@@ -115,10 +118,16 @@ class AdminController{
          
             
         }
-    }async getWeecklyReport(){
-        
+    }async getWeecklyReport(ctx){
+
+    let report = await BuyedItem.find().where('date').gt(new Date(new Date() - 7 * 60 * 60 * 24 * 1000)) ;
+    console.log(report) ;
+    let rep =   await User.findOne({chatId : ctx.chat.id}).populate('buyeditems') ; 
+    ctx.reply(rep)
+
     }
-    async clearState(ctx , admin){
+    
+    async clearState( admin){
         this.kala_stack =[] ;
         admin.state = state.NOTHING ; 
         await admin.save();

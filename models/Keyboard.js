@@ -68,6 +68,9 @@ class KeyboardSample{
                     },{  
                         text: "گزارش هفتگی",
                         one_time_keyboard: true
+                    },{  
+                        text: "گزارش پرداخت ها",
+                        one_time_keyboard: true
                     }],
                     ["گزارش کلی"]
                 ]

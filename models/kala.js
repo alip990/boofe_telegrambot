@@ -1,7 +1,10 @@
 mongoose = require('mongoose')
 
 const kalaSchema = new mongoose.Schema({
-        name : String , 
+        name : {type :String,
+        minlenght  : 2 ,
+        maxlenght : 100 ,
+} , 
         price : Number ,
         availbequantity : Number 
 })

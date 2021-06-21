@@ -1,9 +1,8 @@
 mongoose = require('mongoose')
 
-    const buyedItemSchema = new mongoose.Schema({
-        name : String ,
+    const paymentSchema = new mongoose.Schema({
         price : Number , 
-        user : {type :mongoose.Schema.Types.ObjectId , ref :"User" } , 
+        userchatId : String , 
         // quantity : Number   ,
         date :  { type: Date, default: Date.now },    
     })

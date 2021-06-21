@@ -1,7 +1,7 @@
 mongoose = require('mongoose')
 const buyedItemSchema = new mongoose.Schema({
     name : String ,
-    Price : {type :Number , default : 0} , 
+    price : {type :Number , default : 0} , 
     //quantity : Number   ,
     date :  { type: Date, default: Date.now },    
 })

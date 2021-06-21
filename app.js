@@ -82,6 +82,10 @@ bot.hears('حذف کالا',async (ctx)=>{
     await Admin.updateOne({chatId: ctx.chat.id , state: state.ADMIN.DELETEKALA});
 })
 
+bot.hears('گزارش هفتگی', async (ctx)=>{
+    adminController.getWeecklyReport(ctx);
+})
+
 bot.hears('ویرایش کالا',async (ctx)=>{
     kalaController.showkalasInline(ctx) ; 
     await Admin.updateOne({chatId: ctx.chat.id , state: state.ADMIN.CHANGEDETAIL.ENTERNAME});
@@ -135,7 +139,6 @@ bot.action(predicateFn, async  (ctx) => {
         console.log(admin.state)
         if(admin.state == state.ADMIN.DELETEKALA){
             console.log("action admin  delete")
-
             adminController.deleteKala(ctx , kalaname=ctx.update.callback_query.data) 
         }
         else if(admin.state == state.ADMIN.CHANGEDETAIL.ENTERNAME){
@@ -146,7 +149,6 @@ bot.action(predicateFn, async  (ctx) => {
             console.log("in add qunatity name ")
             adminController.addquantity(ctx, admin ,kalaname=ctx.update.callback_query.data) ;
         }
-
     }else
     userController.buy_kala(ctx , kalaname = ctx.update.callback_query.data);
 
