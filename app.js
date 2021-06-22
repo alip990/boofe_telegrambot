@@ -42,12 +42,14 @@ const startKeyBoard = {
 
 
 bot.command('start',async (ctx) =>{ 
-    if(adminController.findAdmin(ctx)){
-        bot.telegram.sendMessage(ctx.chat.id, 'Hello What can I do for you', keyboardSample.Adminkeyboard);
+    let admin = await adminController.findAdmin(ctx) ;
+    if(admin){
+        bot.telegram.sendMessage(ctx.chat.id, 'Hello ! What can I do for you', keyboardSample.Adminkeyboard);
         return ;         
     }
-    var user = userController.findUser ; 
+    let user = await userController.findUser(ctx); 
     if( ! user ){
+        console.log('in singup')
         user = new User({
                         name : ctx.chat.first_name + ctx.chat.last_name , 
                         chatId : ctx.chat.id , 
@@ -55,7 +57,7 @@ bot.command('start',async (ctx) =>{
         user.save()
         bot.telegram.sendMessage(ctx.chat.id, 'Can we get access to your phone number?', keyboardSample.requestPhoneKeyboard);
     }else{    
-    bot.telegram.sendMessage(ctx.chat.id, 'Hello What can I do for you', startKeyBoard);
+    bot.telegram.sendMessage(ctx.chat.id, 'Hello What can I do for you'  + ctx.chat.first_name, keyboardSample.startKeyBoard);
     }
 
 })
@@ -94,6 +96,24 @@ bot.hears("افزودن موجودی کالا"  , async (ctx)=>{
     kalaController.ShowkalasInlinewithQuantity(ctx) ; 
     await Admin.updateOne({chatId: ctx.chat.id , state: state.ADMIN.ADDQUNTITY.NAME});
     
+}) 
+bot.hears('لیست خوراکی ها',async(ctx)=>{
+    let editedMessage = `edited message`;
+    ctx.telegram.editMessageText(ctx.chat.id, ctx.message.message_id, undefined, editedMessage,
+      {
+        reply_markup: {
+          inline_keyboard: [
+            [
+              { text: "⬅️ Voltar", callback_data: 'start' }
+            ]
+          ]
+        },
+        parse_mode: "markdown"
+      })
+    await kalaController.showkalasInline(ctx); 
+    await User.update({chatId :ctx.chat.id , state :state.USER.BUYKALA })
+
+ 
 })
 bot.hears('موجودی کالا', kalaController.ShowkalasInlinewithQuantity )
 bot.hears('اضافه کردن کالا',async (ctx)=>{
@@ -170,6 +190,7 @@ bot.on("contact",async (ctx)=>{
     if (user.state == state.WAITEFORPHONE){
         user.phone =ctx.message.contact.phone_number ;
         user.state =state.NOTHING ;
+        await user.save()
     }else {
         ctx.reply('I dont neet your phone number ')
     }

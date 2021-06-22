@@ -76,6 +76,19 @@ class KeyboardSample{
                 ]
             }
         };
+        this.startKeyBoard = {
+            "reply_markup": {
+                "one_time_keyboard": true ,
+                "keyboard": [
+                    [{
+                        text: "لیست خوراکی ها ",
+                        one_time_keyboard: true , 
+                        callback_data : '/showkalas'
+                    }],
+                    ["Cancel"]
+                ]
+            }
+        };
     }
 }
 

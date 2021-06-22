@@ -11,7 +11,6 @@ const userSchema = new mongoose.Schema({
     phone  : String  ,
     chatId : String , 
     username :String , 
-    buyedList :[buyedItemSchema] , 
     deptPrice :  {type :Number , default : 0  },
     state : String 
     

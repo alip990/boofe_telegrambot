@@ -21,7 +21,8 @@ class KalaController{
             }
         inline_keyboard.push([{text : 'back' ,callback_data :'back ' } ])
             ctx.reply( "لیست کالا ", {
-                reply_markup: {inline_keyboard}})    
+                reply_markup: {inline_keyboard
+                }})    
     }
     async ShowkalasInlinewithQuantity (ctx){
         const kalas = await Kala.find () ;

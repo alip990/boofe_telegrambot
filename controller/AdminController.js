@@ -123,7 +123,8 @@ class AdminController{
     let report = await BuyedItem.find().where('date').gt(new Date(new Date() - 7 * 60 * 60 * 24 * 1000)) ;
     console.log(report) ;
     let rep =   await User.findOne({chatId : ctx.chat.id}).populate('buyeditems') ; 
-    ctx.reply(rep)
+    let rep2 = await BuyedItem.find().populate('user')
+    ctx.reply(rep2)
 
     }
     
