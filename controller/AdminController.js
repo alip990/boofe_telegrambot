@@ -3,7 +3,6 @@ const  mongoose = require ('mongoose');
 const Admin = require ('../models/admin') ;
 const Kala = require('../models/kala') ;
 const User = require ('../models/user') ;
-const Buyeditem = require('../models/buyeditem') ; 
 const BuyedItem = require('../models/buyeditem');
 
 class AdminController{
@@ -118,15 +117,31 @@ class AdminController{
          
             
         }
-    }async getWeecklyReport(ctx){
-
-    let report = await BuyedItem.find().where('date').gt(new Date(new Date() - 7 * 60 * 60 * 24 * 1000)) ;
-    console.log(report) ;
-    let rep =   await User.findOne({chatId : ctx.chat.id}).populate('buyeditems') ; 
-    let rep2 = await BuyedItem.find().populate('user')
-    ctx.reply(rep2)
-
-    }
+    }async getweeklyReport(ctx){
+        let rep =   await User.findOne({chatId : ctx.chat.id}).populate('BuyedItem') ; 
+        let text =''
+         let weekprice =0
+        //  for (let i of rep) {
+        //     let d= new Date(i.date) 
+        //     text += i.name + "   " +i.price + "   " +d.getMonth()+'/'+ d.getDay()  + " \n" ;
+        //     weekprice +=i.price ;
+        // }
+        // text += ' : جمع کل ' + weekprice
+         ctx.reply(rep)
+      
+     }async getMountlyReport(ctx){
+        let rep =   await User.findOne({chatId : ctx.chat.id}).populate('buyeditems') ; 
+        let text =''
+         let weekprice =0
+         for (let i of rep) {
+             let d= new Date(i.date) 
+             text += i.name + "   " +i.price + "   " +d.getMonth()+'/'+ d.getDay()  + " \n" ;
+             weekprice +=i.price ;
+         }
+         text += ' : جمع کل ' + weekprice
+         ctx.reply(rep)
+      
+     }
     
     async clearState( admin){
         this.kala_stack =[] ;

@@ -3,7 +3,8 @@ const  mongoose = require ('mongoose')
 const Admin = require ('../models/admin')
 const Kala = require('../models/kala')
 const User = require ('../models/user')
-const Buyeditem = require('../models/buyeditem') ; 
+const BuyedItem = require('../models/buyeditem');
+
 class UserController{
     constructor(){
      ; 
@@ -44,6 +45,38 @@ class UserController{
             await user.save() ; 
 
         }
+
+    }
+    async getWeecklyReport(ctx){
+        //let report = await BuyedItem.find().where('date').gt(new Date(new Date() - 7 * 60 * 60 * 24 * 1000)) ;
+        //console.log(report) ;
+       // let rep =   await User.findOne({chatId : ctx.chat.id}).populate('buyeditems') ; 
+        let report = await BuyedItem.find().where('date').gt(new Date(new Date() - 7 * 60 * 60 * 24 * 1000)) .populate({path:'user' , match: { chatId: { $eq: ctx.chat.id } }, });
+        let text =''
+        let weekprice =0
+        for (let i of report) {
+            let d= new Date(i.date) 
+            text += i.name + "   " +i.price + "   " +d.getMonth()+'/'+ d.getDay()  + " \n" ;
+            weekprice +=i.price ;
+        }
+        text += ' : جمع کل ' + weekprice
+        ctx.reply(text)
+     
+
+    }
+    async getMountlyReport(ctx){
+        let rep =   await User.findOne({chatId : ctx.chat.id}).populate('buyeditems') ; 
+        let rep2 = await BuyedItem.find().where('date').gt(new Date(new Date() - 30 * 60 * 60 * 24 * 1000)) .populate({path:'user' , match: { chatId: { $eq: ctx.chat.id } }, });
+        let text =''
+        let weekprice =0
+        for (let i of rep2) {
+            let d= new Date(i.date) 
+            text += i.name + "   " +i.price + "   " +d.getMonth()+'/'+ d.getDay()  + " \n" ;
+            weekprice +=i.price ;
+        }
+        text += ' : جمع کل ' + weekprice
+        ctx.reply(text)
+     
 
     }
 }

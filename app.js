@@ -9,6 +9,7 @@ const adminController = require('./controller/AdminController');
 const userController  = require('./controller/UserController')
 const kalaController  = require('./controller/KalaController')
 const keyboardSample = require ('./models/Keyboard')
+const UserController = require('./controller/UserController')
 mongoose.connect('mongodb://localhost/mydatabase')
 .then(()=> console.log('connected to MongoDB ..'))
 .catch(err => console.log('could not connect to database'))
@@ -57,7 +58,7 @@ bot.command('start',async (ctx) =>{
         user.save()
         bot.telegram.sendMessage(ctx.chat.id, 'Can we get access to your phone number?', keyboardSample.requestPhoneKeyboard);
     }else{    
-    bot.telegram.sendMessage(ctx.chat.id, 'Hello What can I do for you'  + ctx.chat.first_name, keyboardSample.startKeyBoard);
+    bot.telegram.sendMessage(ctx.chat.id, 'Hello What can I do for you '  + ctx.chat.first_name, keyboardSample.Userkeyboard) ;
     }
 
 })
@@ -74,8 +75,9 @@ bot.command('MakeMeAdmin',async (ctx)=>{
             }) 
             await admin.save();
             console.log(admin)
+            ctx.reply('You are admin now')
         }else{
-            console.log('you were admin ')
+            ctx.reply('You were admin befor')
         }
     })
 
@@ -85,8 +87,20 @@ bot.hears('حذف کالا',async (ctx)=>{
 })
 
 bot.hears('گزارش هفتگی', async (ctx)=>{
-    adminController.getWeecklyReport(ctx);
+    userController.getWeecklyReport(ctx);
 })
+
+bot.hears('گزارش ماهانه', async (ctx)=>{
+    userController.getMountlyReport(ctx);
+})
+
+bot.hears("گزارش حساب هفتگی", async (ctx)=>{
+    adminController.getweeklyReport(ctx);
+});
+
+bot.hears("گزارش حساب ماهانه", async (ctx)=>{
+    adminController.getMountlyReport(ctx);
+});
 
 bot.hears('ویرایش کالا',async (ctx)=>{
     kalaController.showkalasInline(ctx) ; 
@@ -97,7 +111,12 @@ bot.hears("افزودن موجودی کالا"  , async (ctx)=>{
     await Admin.updateOne({chatId: ctx.chat.id , state: state.ADMIN.ADDQUNTITY.NAME});
     
 }) 
-bot.hears('لیست خوراکی ها',async(ctx)=>{
+bot.hears("افزودن موجودی کالا"  , async (ctx)=>{
+    kalaController.ShowkalasInlinewithQuantity(ctx) ; 
+    await Admin.updateOne({chatId: ctx.chat.id , state: state.ADMIN.ADDQUNTITY.NAME});
+    
+}) 
+bot.hears('خرید کالا',async(ctx)=>{
     let editedMessage = `edited message`;
     ctx.telegram.editMessageText(ctx.chat.id, ctx.message.message_id, undefined, editedMessage,
       {
@@ -165,7 +184,7 @@ bot.action(predicateFn, async  (ctx) => {
             console.log("in entername")
             adminController.changedetailkala(ctx  , admin,kalaname=ctx.update.callback_query.data);
         }
-        else if (admin.state = state.ADMIN.ADDQUNTITY.NAME){
+        else if (admin.state == state.ADMIN.ADDQUNTITY.NAME){
             console.log("in add qunatity name ")
             adminController.addquantity(ctx, admin ,kalaname=ctx.update.callback_query.data) ;
         }

@@ -35,11 +35,11 @@ class KeyboardSample{
                         one_time_keyboard: true  
                     },
                     {
-                        text: "گزارش ماهانه",
+                        text: "گزارش حساب ماهانه",
                         one_time_keyboard: true  
                     },
                     {
-                        text: "گزارش هفتگی",
+                        text: "گزارش حساب هفتگی",
                         one_time_keyboard: true  
                     }],[{
                         text: "تسویه کاربر",
@@ -68,11 +68,7 @@ class KeyboardSample{
                     },{  
                         text: "گزارش هفتگی",
                         one_time_keyboard: true
-                    },{  
-                        text: "گزارش پرداخت ها",
-                        one_time_keyboard: true
                     }],
-                    ["گزارش کلی"]
                 ]
             }
         };
