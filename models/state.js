@@ -9,7 +9,8 @@ const  State = class  {
         }
         this.USER ={
             WAITEFORPHONE :'WaitForPhone' , 
-            BUYKALA : 'BuyKala'
+            BUYKALA : 'BuyKala' ,
+            DELETEORDER : 'DelereOrder'
 
         }
     }

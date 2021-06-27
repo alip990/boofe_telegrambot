@@ -4,6 +4,8 @@ const Admin = require ('../models/admin') ;
 const Kala = require('../models/kala') ;
 const User = require ('../models/user') ;
 const BuyedItem = require('../models/buyeditem');
+const keyboardSample = require ('../models/Keyboard');
+const { receiveMessageOnPort } = require('worker_threads');
 
 class AdminController{
     constructor(){
@@ -18,21 +20,27 @@ class AdminController{
         console.log(admin.state)
         if (admin.state == state.ADMIN.ADDNEWKALA.NAME ) {
            this.kala_stack.push(ctx.message.text) ;
-            console.log(ctx.message.text) ; 
+            //console.log(ctx.message.text) ; 
             admin.state = state.ADMIN.ADDNEWKALA.PRICE ; 
             await admin.save();
-            ctx.reply('enter price of ' + ctx.message.text);
+            await ctx.reply('قیمت' + ctx.message.text + ' را وارد کنید');
+            ctx.session.counter + 2;
+
             return
     
         }else if(admin.state == state.ADMIN.ADDNEWKALA.PRICE){
-            let  pr=parseInt(ctx.message.text)
+            let  pr = parseInt(ctx.message.text)
                 if (pr) {
                     this.kala_stack.push(pr) ; 
-                    ctx.reply('enter quntity ') ; 
+                    await ctx.reply('موجودی را وارد کنید') ; 
+                    ctx.session.counter +=2;
+
                     admin.state = state.ADMIN.ADDNEWKALA.QUANTITY 
                     await admin.save(); 
                 }else {
-                    ctx.reply('you should enter number not text ' ) ;
+                    await ctx.reply('وردی باید عدد باشد' ) ;
+                    ctx.session.counter +=2;
+
                     return ; 
                 }
                    
@@ -42,7 +50,9 @@ class AdminController{
                 if (qu) {
                    this.kala_stack.push(qu) ; 
                 }else {
-                    ctx.reply('you should enter number not text ' ) ;
+                    await ctx.reply('ورودی باید عدد باشد ' ) ;
+                    ctx.session.counter +=2;
+
                     return ; 
                 }
                 admin.state = state.NOTHING
@@ -52,7 +62,10 @@ class AdminController{
                 kala.price =this.kala_stack.pop();
                 kala.name =this.kala_stack.pop();
                 await kala.save()
-                ctx.reply(kala.name+' added succesfully') ; 
+                await ctx.reply(kala.name+' به لیست کالا ها اضافه شد') ; 
+                ctx.session.counter +=3;
+                this.deleteLastmessage(ctx , ctx.message.message_id ) ;
+
             } 
     }
     async deleteKala(ctx , kalaname){
@@ -60,12 +73,18 @@ class AdminController{
         await Kala.deleteOne({name : kalaname}) ; 
         admin.state = state.NOTHING ; 
         await admin.save();
-        ctx.reply(kalaname +' deleted sucsesfully ') ; 
+        await ctx.reply(kalaname +' از لیست کالاها حذف شد ') ; 
+        this.deleteLastmessage(ctx  , ctx.update.callback_query.message.message_id) ;
+        ctx.session.counter +=2;
+
+
 
     }
     async addquantity(ctx , admin){
         if(admin.state == state.ADMIN.ADDQUNTITY.NAME){
-            ctx.reply('enter quantity for ' + kalaname) ; 
+            await ctx.reply('enter quantity for ' + kalaname) ; 
+            ctx.session.counter +=2;
+
             this.kala_stack.push(kalaname) ;
             admin.state = state.ADMIN.ADDQUNTITY.PRICE ; 
             admin.save();
@@ -75,10 +94,17 @@ class AdminController{
                     let kala = await Kala.findOne({name : this.kala_stack  });
                     kala.availbequantity += qu ; 
                     kala.save();
-                    ctx.reply(`quantity of ${ kala.name } now is ${kala.availbequantity}`) ; 
+                    await ctx.reply(`موجودی ${ kala.name } =  ${kala.availbequantity}`) ; 
+                    ctx.session.counter +=2;
+
                     admin.state = state.NOTHING ; 
+                    admin.save()  ;
+                    this.deleteLastmessage(ctx,ctx.message.message_id ) ;
+
                 }else {
-                    ctx.reply('you should enter number not text ' ) ;
+                    await ctx.reply('ورودی باید عدد باشد' ) ;
+                    ctx.session.counter +=2;
+
                     return ; 
                 }
 
@@ -87,13 +113,17 @@ class AdminController{
     async changedetailkala(ctx ,admin, kalaname =''){
         console.log(" in change detail function ")
         if(admin.state == state.ADMIN.CHANGEDETAIL.ENTERNAME){
-            ctx.reply('enter new name for ' + kalaname) ; 
+            await ctx.reply('نام جدید را وارد کنید' + kalaname) ; 
+            ctx.session.counter +=2;
+
             this.kala_stack.push(kalaname) ;
             admin.state = state.ADMIN.CHANGEDETAIL.NAME
             admin.save();
         }
         else if (admin.state == state.ADMIN.CHANGEDETAIL.NAME){
-            ctx.reply('enter new price ')
+            await ctx.reply('قیمت جدید را وارد کنید ') ;
+            ctx.session.counter +=2;
+
             this.kala_stack.push(ctx.message.text)
             admin.state = state.ADMIN.CHANGEDETAIL.PRICE ;
             await admin.save();
@@ -108,45 +138,106 @@ class AdminController{
                     kala.name = new_name ; 
                     kala.price = pr ; 
                     await kala.save() ; 
-                    await this.clearState(admin);
-                    ctx.reply(kala.name+ " changed successfully")
+                    await this.clearState(ctx , admin);
+                    await ctx.reply(kala.name+ " ویرایش شد ");
+                    ctx.session.counter +=2;
+
                 }else {
-                    ctx.reply('you should enter number not text ' ) ;
+                    await ctx.reply('ورودی باید عدد باشد' ) ;
+                    ctx.session.counter +=2;
+
                     return ; 
                 }
          
             
         }
     }async getweeklyReport(ctx){
-        let rep =   await User.findOne({chatId : ctx.chat.id}).populate('BuyedItem') ; 
+        let report = await BuyedItem.find().where('date').gt(new Date(new Date() - 7 * 60 * 60 * 24 * 1000)) .populate({path:'user'});
         let text =''
-         let weekprice =0
-        //  for (let i of rep) {
-        //     let d= new Date(i.date) 
-        //     text += i.name + "   " +i.price + "   " +d.getMonth()+'/'+ d.getDay()  + " \n" ;
-        //     weekprice +=i.price ;
-        // }
-        // text += ' : جمع کل ' + weekprice
-         ctx.reply(rep)
-      
+        let weekprice =0 ;
+        let report_basedUser = {}
+        for (let i of report) {
+            let d= new Date(i.date) 
+            if (report_basedUser[i.user.name]){
+            
+                report_basedUser[i.user.name].list.push(i)
+                report_basedUser[i.user.name].text +=i.name + "  - " +i.price + "  - " +d.getMonth()+'/'+ d.getDay()  + " \n" ; ; 
+                report_basedUser[i.user.name].weekprice +=i.price
+
+
+
+            }
+            else {
+                report_basedUser[i.user.name]={} 
+                report_basedUser[i.user.name].list = [i] ;
+                report_basedUser[i.user.name].text = i.name + "  - " +i.price + " -  " +d.getMonth()+'/'+ d.getDay()  + " \n" ;
+                report_basedUser[i.user.name].weekprice =i.price
+
+            }
+        }
+        for (let i in report_basedUser){
+            text += ' --- '+i + ' --- \n' +report_basedUser[i].text ;
+            console.log(report_basedUser[i])
+
+        }
+        await ctx.reply(text)
+        ctx.session.counter +=4 ;
      }async getMountlyReport(ctx){
-        let rep =   await User.findOne({chatId : ctx.chat.id}).populate('buyeditems') ; 
+        let report = await BuyedItem.find().where('date').gt(new Date(new Date() - 30 * 60 * 60 * 24 * 1000)) .populate({path:'user'});
         let text =''
-         let weekprice =0
-         for (let i of rep) {
-             let d= new Date(i.date) 
-             text += i.name + "   " +i.price + "   " +d.getMonth()+'/'+ d.getDay()  + " \n" ;
-             weekprice +=i.price ;
-         }
-         text += ' : جمع کل ' + weekprice
-         ctx.reply(rep)
+        let weekprice =0 ;
+        let report_basedUser = {}
+        for (let i of report) {
+            let d= new Date(i.date) 
+            if (report_basedUser[i.user.name]){
+            
+                report_basedUser[i.user.name].list.push(i)
+                report_basedUser[i.user.name].text +=i.name + "  - " +i.price + "  - " +d.getMonth()+'/'+ d.getDay()  + " \n" ; ; 
+                report_basedUser[i.user.name].weekprice +=i.price
+
+
+
+            }
+            else {
+                report_basedUser[i.user.name]={} 
+                report_basedUser[i.user.name].list = [i] ;
+                report_basedUser[i.user.name].text = i.name + "  - " +i.price + " -  " +d.getMonth()+'/'+ d.getDay()  + " \n" ;
+                report_basedUser[i.user.name].weekprice =i.price
+
+            }
+        }
+        for (let i in report_basedUser){
+            text += ' --- '+i + ' --- \n' +report_basedUser[i].text ;
+            console.log(report_basedUser[i])
+
+        }
+        await ctx.reply(text)
+        ctx.session.counter +=4 ;
       
      }
     
-    async clearState( admin){
+    async clearState( ctx , admin){
         this.kala_stack =[] ;
         admin.state = state.NOTHING ; 
         await admin.save();
+        //this.deleteLastmessage(ctx ,ctx.message.message_id) ;
+
+    }
+    async deleteLastmessage(ctx , message_id ){
+        try 
+        {
+            for(let i = 0  ; i<ctx.session.counter-1 ; i++){
+                  await ctx.deleteMessage(message_id - i ) ;}
+
+                  //await ctx.deleteMessage(message_id - ctx.session.counter-1 )
+        }catch(err) {
+            console.log(err);
+        };
+    
+        
+    
+    await ctx.telegram.sendMessage(ctx.chat.id, ' چه کاری هست ؟ '  + ctx.chat.first_name, keyboardSample.Adminkeyboard) ;
+    ctx.session.counter =2 ;
     }
 }
 module.exports = new AdminController()
