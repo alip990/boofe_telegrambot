@@ -5,7 +5,8 @@ const  State = class  {
                       ADDNEWKALA:{ NAME : 'AddNewKalaName',  PRICE :'AddNewKalaPrice' ,QUANTITY :'AddNewKalaQuanntity'},
                       DELETEKALA : 'DELTEKALA',
                       CHANGEDETAIL:{ENTERNAME :'ChangeDetailEnterName' ,NAME:'ChangeDetailName', PRICE : 'ChangeDetailPrice'} ,
-                      ADDQUNTITY: { NAME :"AddQuantityName" , QUANTITY:'AddQuantiryQuantity'}
+                      ADDQUNTITY: { NAME :"AddQuantityName" , QUANTITY:'AddQuantiryQuantity'},
+                      USERCHECKOUT : 'UserCheckOut'
         }
         this.USER ={
             WAITEFORPHONE :'WaitForPhone' , 

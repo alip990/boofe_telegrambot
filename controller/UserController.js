@@ -92,11 +92,13 @@ class UserController{
     async DeleteOrder(ctx , index , user){
 
         if(user.state == state.USER.DELETEORDER){
-           let kala =  await BuyedItem.findOneAndDelete({_id : ctx.session.map_index_order[index] })
+           let kala =  await BuyedItem.findOneAndDelete({_id : ctx.session.map_indextoorder[index] })
+           //console.log('index is '+ index  ); 
+           //console.log(ctx.session.map_indextoorder[index] ); 
             ctx.reply( ' حذف شد  ' + kala.name)
             ctx.session.counter +=2 ;
-
             await this.clearState(ctx,user)
+            await this.deleteLastmessage(ctx  , ctx.message.message_id) ;
 
 
         }else 
@@ -104,17 +106,20 @@ class UserController{
             let text ='گزارش هفتگی \n'
             let weekprice =0
             let index = 0 
-            ctx.session.map_index_order = {} 
+            ctx.session.map_indextoorder = {} 
             
             for (let i of report) {
                 let d= new Date(i.date) 
-                text += index++  +'- '+ i.name + "   " +i.price + "   " +d.getMonth()+'/'+ d.getDay()  + " \n" ;
+                text += ++index  +'- '+ i.name + "   " +i.price + "   " +d.getMonth()+'/'+ d.getDay()  + " \n" ;
                 weekprice +=i.price ;
-                ctx.session.map_index_order[index ]  = i._id ;
+                ctx.session.map_indextoorder[index ]  = i._id ;
+             //   console.log('index is '+ index  ); 
+
+              //  console.log(ctx.session.map_indextoorder[index ])
             }
             text += ' : جمع کل ' + weekprice
             await ctx.reply(text)
-           // console.log(ctx.session.map_index_order)
+           // console.log(ctx.session.map_indextoorder)
             ctx.session.counter +=3 ;
             user.state = state.USER.DELETEORDER  ;
              await user.save()
@@ -139,8 +144,8 @@ class UserController{
     
         
     
-    await ctx.telegram.sendMessage(ctx.chat.id, ' چه کاری هست ؟ '  + ctx.chat.first_name, keyboardSample.Userkeyboard) ;
-    ctx.session.counter =2 ;
+    await ctx.reply( ' چه کاری هست ؟ '  + ctx.chat.first_name, keyboardSample.Userkeyboard) ;
+    ctx.session.counter =3 ;
     }
 }
 module.exports = new UserController() ;

@@ -23,7 +23,7 @@ class AdminController{
             //console.log(ctx.message.text) ; 
             admin.state = state.ADMIN.ADDNEWKALA.PRICE ; 
             await admin.save();
-            await ctx.reply('قیمت' + ctx.message.text + ' را وارد کنید');
+            await ctx.reply('قیمت ' + ctx.message.text + ' را وارد کنید');
             ctx.session.counter + 2;
 
             return
@@ -140,7 +140,8 @@ class AdminController{
                     await kala.save() ; 
                     await this.clearState(ctx , admin);
                     await ctx.reply(kala.name+ " ویرایش شد ");
-                    ctx.session.counter +=2;
+                    ctx.session.counter +=3;
+                    this.deleteLastmessage(ctx,ctx.message.message_id ) ;                
 
                 }else {
                     await ctx.reply('ورودی باید عدد باشد' ) ;
@@ -153,7 +154,7 @@ class AdminController{
         }
     }async getweeklyReport(ctx){
         let report = await BuyedItem.find().where('date').gt(new Date(new Date() - 7 * 60 * 60 * 24 * 1000)) .populate({path:'user'});
-        let text =''
+        let text ='' ;
         let weekprice =0 ;
         let report_basedUser = {}
         for (let i of report) {
@@ -180,7 +181,10 @@ class AdminController{
             console.log(report_basedUser[i])
 
         }
-        await ctx.reply(text)
+        if(text == ''){
+            text = ' گزارشی نیست ' ; 
+        }
+        await ctx.reply(text) ; 
         ctx.session.counter +=4 ;
      }async getMountlyReport(ctx){
         let report = await BuyedItem.find().where('date').gt(new Date(new Date() - 30 * 60 * 60 * 24 * 1000)) .populate({path:'user'});
@@ -211,11 +215,20 @@ class AdminController{
             console.log(report_basedUser[i])
 
         }
+        if(text == ''){
+            text = ' گزارشی نیست ' ; 
+        }
         await ctx.reply(text)
         ctx.session.counter +=4 ;
       
      }
-    
+    async checkout(ctx,index){
+        await User.update({_id : ctx.session.users[index-1]._id , deptPrice : 0 })
+        console.log(ctx.session.users[index-1])
+        ctx.reply('حساب ' +ctx.session.users[index-1].name + " تسویه شد" )
+        ctx.session.counter +=2;
+        await this.deleteLastmessage(ctx ,ctx.message.message_id)
+    }
     async clearState( ctx , admin){
         this.kala_stack =[] ;
         admin.state = state.NOTHING ; 
@@ -223,6 +236,7 @@ class AdminController{
         //this.deleteLastmessage(ctx ,ctx.message.message_id) ;
 
     }
+
     async deleteLastmessage(ctx , message_id ){
         try 
         {
