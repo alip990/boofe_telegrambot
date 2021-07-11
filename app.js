@@ -277,6 +277,10 @@ try{
         user =  await User.findOne({chatId : ctx.chat.id }); 
         console.log(user.state)
         if (user.state == state.USER.WAITEFORPHONE){
+            if (user.chatId != ctx.message.contact.user_id){
+                ctx.reply('شماره تلفن خود را وارد کنید')
+                return 
+            }
             user.phone =ctx.message.contact.phone_number ;
             user.state =state.NOTHING ;
             await user.save();
