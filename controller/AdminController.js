@@ -23,23 +23,26 @@ class AdminController{
             //console.log(ctx.message.text) ; 
             admin.state = state.ADMIN.ADDNEWKALA.PRICE ; 
             await admin.save();
-            await ctx.reply('قیمت ' + ctx.message.text + ' را وارد کنید');
-            ctx.session.counter + 2;
-
+            let x =await ctx.reply('قیمت ' + ctx.message.text + ' را وارد کنید');
+              
+              
+ 
             return
     
         }else if(admin.state == state.ADMIN.ADDNEWKALA.PRICE){
             let  pr = parseInt(ctx.message.text)
                 if (pr) {
                     this.kala_stack.push(pr) ; 
-                    await ctx.reply('موجودی را وارد کنید') ; 
-                    ctx.session.counter +=2;
+                    let x = await ctx.reply('موجودی را وارد کنید') ; 
+                      
+                      
 
                     admin.state = state.ADMIN.ADDNEWKALA.QUANTITY 
                     await admin.save(); 
                 }else {
-                    await ctx.reply('وردی باید عدد باشد' ) ;
-                    ctx.session.counter +=2;
+                    let x = await ctx.reply('وردی باید عدد باشد' ) ;
+                      
+                      
 
                     return ; 
                 }
@@ -50,8 +53,9 @@ class AdminController{
                 if (qu) {
                    this.kala_stack.push(qu) ; 
                 }else {
-                    await ctx.reply('ورودی باید عدد باشد ' ) ;
-                    ctx.session.counter +=2;
+                    let x = await ctx.reply('ورودی باید عدد باشد ' ) ;
+                      
+                      
 
                     return ; 
                 }
@@ -62,8 +66,9 @@ class AdminController{
                 kala.price =this.kala_stack.pop();
                 kala.name =this.kala_stack.pop();
                 await kala.save()
-                await ctx.reply(kala.name+' به لیست کالا ها اضافه شد') ; 
-                ctx.session.counter +=3;
+                let x = await ctx.reply(kala.name+' به لیست کالا ها اضافه شد') ; 
+                  
+                  
                 this.deleteLastmessage(ctx , ctx.message.message_id ) ;
 
             } 
@@ -73,17 +78,19 @@ class AdminController{
         await Kala.deleteOne({name : kalaname}) ; 
         admin.state = state.NOTHING ; 
         await admin.save();
-        await ctx.reply(kalaname +' از لیست کالاها حذف شد ') ; 
+        let x = await ctx.reply(kalaname +' از لیست کالاها حذف شد ') ;
+          
+            
         this.deleteLastmessage(ctx  , ctx.update.callback_query.message.message_id) ;
-        ctx.session.counter +=2;
 
 
 
     }
     async addquantity(ctx , admin){
         if(admin.state == state.ADMIN.ADDQUNTITY.NAME){
-            await ctx.reply('enter quantity for ' + kalaname) ; 
-            ctx.session.counter +=2;
+            let x = await ctx.reply('تعداد ' + kalaname + 'وارد کنید ') ; 
+              
+               
 
             this.kala_stack.push(kalaname) ;
             admin.state = state.ADMIN.ADDQUNTITY.PRICE ; 
@@ -94,36 +101,33 @@ class AdminController{
                     let kala = await Kala.findOne({name : this.kala_stack  });
                     kala.availbequantity += qu ; 
                     kala.save();
-                    await ctx.reply(`موجودی ${ kala.name } =  ${kala.availbequantity}`) ; 
-                    ctx.session.counter +=2;
+                    this.deleteLastmessage(ctx,ctx.message.message_id ) ;
+                    let x = await ctx.reply(`موجودی ${ kala.name } =  ${kala.availbequantity}`) ;                       
 
                     admin.state = state.NOTHING ; 
                     admin.save()  ;
-                    this.deleteLastmessage(ctx,ctx.message.message_id ) ;
 
                 }else {
-                    await ctx.reply('ورودی باید عدد باشد' ) ;
-                    ctx.session.counter +=2;
-
+                    let x = await ctx.reply('ورودی باید عدد باشد' ) ;
+                      
+                    
                     return ; 
                 }
 
         }
     }
+    
     async changedetailkala(ctx ,admin, kalaname =''){
         console.log(" in change detail function ")
         if(admin.state == state.ADMIN.CHANGEDETAIL.ENTERNAME){
-            await ctx.reply('نام جدید را وارد کنید' + kalaname) ; 
-            ctx.session.counter +=2;
-
+            let x = await ctx.reply(' نام جدید را وارد کنید ' + kalaname) ; 
+              
             this.kala_stack.push(kalaname) ;
             admin.state = state.ADMIN.CHANGEDETAIL.NAME
             admin.save();
         }
         else if (admin.state == state.ADMIN.CHANGEDETAIL.NAME){
-            await ctx.reply('قیمت جدید را وارد کنید ') ;
-            ctx.session.counter +=2;
-
+            let x = await ctx.reply('قیمت جدید را وارد کنید ') ;
             this.kala_stack.push(ctx.message.text)
             admin.state = state.ADMIN.CHANGEDETAIL.PRICE ;
             await admin.save();
@@ -134,19 +138,18 @@ class AdminController{
                 if (pr) {
                     let new_name = this.kala_stack.pop() ;
                     let old_name = this.kala_stack.pop();
-                    kala = await Kala.findOne({name:old_name}) ;
+                    let kala = await Kala.findOne({name:old_name}) ;
                     kala.name = new_name ; 
                     kala.price = pr ; 
                     await kala.save() ; 
                     await this.clearState(ctx , admin);
-                    await ctx.reply(kala.name+ " ویرایش شد ");
-                    ctx.session.counter +=3;
+                    let x = await ctx.reply(kala.name+ " ویرایش شد ");
+                      
+                      
                     this.deleteLastmessage(ctx,ctx.message.message_id ) ;                
 
                 }else {
-                    await ctx.reply('ورودی باید عدد باشد' ) ;
-                    ctx.session.counter +=2;
-
+                    let x = await ctx.reply('ورودی باید عدد باشد' ) ;                    
                     return ; 
                 }
          
@@ -178,14 +181,15 @@ class AdminController{
         }
         for (let i in report_basedUser){
             text += ' --- '+i + ' --- \n' +report_basedUser[i].text ;
-            console.log(report_basedUser[i])
+            //console.log(report_basedUser[i])
 
         }
         if(text == ''){
             text = ' گزارشی نیست ' ; 
         }
-        await ctx.reply(text) ; 
-        ctx.session.counter +=4 ;
+        let x = await ctx.reply(text) ; 
+          
+          
      }async getMountlyReport(ctx){
         let report = await BuyedItem.find().where('date').gt(new Date(new Date() - 30 * 60 * 60 * 24 * 1000)) .populate({path:'user'});
         let text =''
@@ -212,21 +216,29 @@ class AdminController{
         }
         for (let i in report_basedUser){
             text += ' --- '+i + ' --- \n' +report_basedUser[i].text ;
-            console.log(report_basedUser[i])
+        //    console.log(report_basedUser[i])
 
         }
         if(text == ''){
             text = ' گزارشی نیست ' ; 
         }
-        await ctx.reply(text)
-        ctx.session.counter +=4 ;
+        let x = await ctx.reply(text)
+          
+          
       
      }
     async checkout(ctx,index){
+        let  number=parseInt(index)
+            if (!number){
+                let x = await ctx.reply('ورودی باید عدد باشد' ) ;
+                  
+                return ; 
+            }
         await User.update({_id : ctx.session.users[index-1]._id , deptPrice : 0 })
         console.log(ctx.session.users[index-1])
-        ctx.reply('حساب ' +ctx.session.users[index-1].name + " تسویه شد" )
-        ctx.session.counter +=2;
+        let x = ctx.reply('حساب ' +ctx.session.users[index-1].name + " تسویه شد" )
+          
+          
         await this.deleteLastmessage(ctx ,ctx.message.message_id)
     }
     async clearState( ctx , admin){
@@ -234,24 +246,21 @@ class AdminController{
         admin.state = state.NOTHING ; 
         await admin.save();
         //this.deleteLastmessage(ctx ,ctx.message.message_id) ;
-
     }
-
     async deleteLastmessage(ctx , message_id ){
-        try 
-        {
-            for(let i = 0  ; i<ctx.session.counter-1 ; i++){
-                  await ctx.deleteMessage(message_id - i ) ;}
+        try{
+            for (let i of ctx.session.messagesId){
+                ctx.deleteMessage(i).catch((err)=>console.log(err))
+            }
+        }catch(err){
+           console.log(err)
+        }
+        ctx.session.messagesId = []
 
-                  //await ctx.deleteMessage(message_id - ctx.session.counter-1 )
-        }catch(err) {
-            console.log(err);
-        };
-    
-        
-    
-    await ctx.telegram.sendMessage(ctx.chat.id, ' چه کاری هست ؟ '  + ctx.chat.first_name, keyboardSample.Adminkeyboard) ;
-    ctx.session.counter =2 ;
+        ctx.reply(' چه کاری هست ؟ '  + ctx.chat.first_name, keyboardSample.Adminkeyboard) ;
+
     }
+
+
 }
 module.exports = new AdminController()

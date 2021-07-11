@@ -6,7 +6,6 @@ const User = require ('../models/user')   ;
 
 class KalaController{
     async showkalasInline(ctx){
-        //ctx.session.counter +=2 ;
         const kalas = await Kala.find () ;
         let inline_keyboard= [];
 
@@ -21,9 +20,9 @@ class KalaController{
     
             }
         //inline_keyboard.push([{text : 'back' ,callback_data :'back ' } ])
-            await ctx.reply( "لیست کالا ", {
+            let x = await ctx.reply( "لیست کالا ", {
                 reply_markup: {inline_keyboard
-                }})    
+                }})                 
     }
     async ShowkalasInlinewithQuantity (ctx){
         
@@ -42,11 +41,13 @@ class KalaController{
             }
         //inline_keyboard.push([{text : 'back' ,callback_data :'back ' } ])
 
-      await ctx.reply( "لیست کالا ", {
+        let x = await ctx.reply( "لیست کالا ", {
              reply_markup: {inline_keyboard}})  ;
         // bot.telegram.sendMessage(ctx.chat.id, "لیست کالا ", {
         //     reply_markup: {inline_keyboard}})    
 
-    }
+        //  
+    } ; 
+    
 }
 module.exports = new KalaController() ; 

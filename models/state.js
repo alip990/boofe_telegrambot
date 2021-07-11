@@ -1,7 +1,7 @@
 const  State = class  {
     constructor(){
         this.NOTHING = 'Nothing' ;
-        this.ADMIN ={ MAKEMEADMIN : 'MakeMeAdmin' ,
+        this.ADMIN ={  
                       ADDNEWKALA:{ NAME : 'AddNewKalaName',  PRICE :'AddNewKalaPrice' ,QUANTITY :'AddNewKalaQuanntity'},
                       DELETEKALA : 'DELTEKALA',
                       CHANGEDETAIL:{ENTERNAME :'ChangeDetailEnterName' ,NAME:'ChangeDetailName', PRICE : 'ChangeDetailPrice'} ,
@@ -10,6 +10,7 @@ const  State = class  {
         }
         this.USER ={
             WAITEFORPHONE :'WaitForPhone' , 
+            MAKEMEADMIN : 'MakeMeAdmin',
             BUYKALA : 'BuyKala' ,
             DELETEORDER : 'DelereOrder'
 

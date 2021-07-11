@@ -13,8 +13,9 @@ class UserController{
     async  findUser(ctx){
         let user  = await User.findOne({chatId : ctx.chat.id}) ;
         if (! user ){
-            await ctx.reply('هنوز وارد نشده اید از /start استفاده کنید ') ; 
-            ctx.session.counter +=2 ;
+            let x = await ctx.reply('هنوز وارد نشده اید از /start استفاده کنید ') ; 
+              
+              
 
             return undefined;
         }
@@ -40,16 +41,14 @@ class UserController{
                 //todo send message to admin if availbequantity= 0 ; 
                 await kala.save() ;
                 await buyedlist.save() ;
-                await ctx.reply( kalaname+'به لیست کالا اضافه شد ') ; 
-                ctx.session.counter +=2 ;
+                let x = await ctx.reply( kalaname+' به لیست کالا اضافه شد  ') ; 
+                  
+                   
                 this.deleteLastmessage(ctx  , ctx.update.callback_query.message.message_id) ;
 
 
             }else {
-                await ctx.reply( 'موجود نیست '+ kalaname ) ;
-                ctx.session.counter +=2 ;
-
-                
+               let x =  await ctx.reply( 'موجود نیست '+ kalaname ) ;
             }
             await user.save() ; 
 
@@ -62,21 +61,29 @@ class UserController{
        // let rep =   await User.findOne({chatId : ctx.chat.id}).populate('buyeditems') ; 
        this.deleteLastmessage(ctx  , ctx.message.message_id) ;
  
-       let report = await BuyedItem.find().where('date').gt(new Date(new Date() - 7 * 60 * 60 * 24 * 1000)) .populate({path:'user' , match: { chatId: { $eq: ctx.chat.id } }, });
-        let text ='گزارش هفتگی \n'
+        let report = await BuyedItem.find().where('date').gt(new Date(new Date() - 7 * 60 * 60 * 24 * 1000)) .populate({path:'user' , match: { chatId: { $eq: ctx.chat.id } }, });
+        let text =''
         let weekprice =0
         for (let i of report) {
             let d= new Date(i.date) 
             text += i.name + "   " +i.price + "   " +d.getMonth()+'/'+ d.getDay()  + " \n" ;
             weekprice +=i.price ;
         }
-        text += ' : جمع کل ' + weekprice
-        await ctx.reply(text)
-        ctx.session.counter +=3 ;
-    }
+        if (text == ''){
+            text = 'گزارشی نیست '  ;
+            let x = await ctx.reply(text); 
+              
+               ; 
+            return 
+        }
+        text = 'گزارش هفتگی \n' + text  ; 
+        text += ' : جمع کل ' + weekprice + ' \n'
+        text += 'بدهی کل : ' + report[0].user.deptPrice ;       
+        let x = await ctx.reply(text) ;      
+        }
     async getMountlyReport(ctx){
         this.deleteLastmessage(ctx  , ctx.message.message_id) ;
-        let rep =   await User.findOne({chatId : ctx.chat.id}).populate('buyeditems') ; 
+        //let rep =   await User.findOne({chatId : ctx.chat.id}).populate('buyeditems') ; 
         let rep2 = await BuyedItem.find().where('date').gt(new Date(new Date() - 30 * 60 * 60 * 24 * 1000)) .populate({path:'user' , match: { chatId: { $eq: ctx.chat.id } }, });
         let text =''
         let weekprice =0
@@ -85,25 +92,39 @@ class UserController{
             text += i.name + "   " +i.price + "   " +d.getMonth()+'/'+ d.getDay()  + " \n" ;
             weekprice +=i.price ;
         }
-        text += ' : جمع کل ' + weekprice
-        await ctx.reply(text)
-        ctx.session.counter +=2 ;
+        if (text == ''){
+            text = 'گزارشی نیست '  ;
+            let x = await ctx.reply(text); 
+              
+               ; 
+            return 
+        }
+        text = 'گزارش ماهانه \n' + text  ; 
+        text += ' جمع کل :' + weekprice + ' \n'
+        text += 'بدهی کل : ' + rep2[0].user.deptPrice ;     
+        let x = await ctx.reply(text)          
     }
     async DeleteOrder(ctx , index , user){
 
         if(user.state == state.USER.DELETEORDER){
-           let kala =  await BuyedItem.findOneAndDelete({_id : ctx.session.map_indextoorder[index] })
+            let  number=parseInt(index)
+            if (!number){
+                let x = await ctx.reply('ورودی باید عدد باشد' ) ;
+                return ; 
+            }
+            
+            let kala =  await BuyedItem.findOneAndDelete({_id : ctx.session.map_indextoorder[index] })
            //console.log('index is '+ index  ); 
            //console.log(ctx.session.map_indextoorder[index] ); 
-            ctx.reply( ' حذف شد  ' + kala.name)
-            ctx.session.counter +=2 ;
+            let x = ctx.reply( ' حذف شد  ' + kala.name)
+              
+              
             await this.clearState(ctx,user)
             await this.deleteLastmessage(ctx  , ctx.message.message_id) ;
 
-
         }else 
             {let report = await BuyedItem.find().where('date').gt(new Date(new Date() - 7 * 60 * 60 * 24 * 1000)) .populate({path:'user' , match: { chatId: { $eq: ctx.chat.id } }, });
-            let text ='گزارش هفتگی \n'
+            let text =''
             let weekprice =0
             let index = 0 
             ctx.session.map_indextoorder = {} 
@@ -113,19 +134,24 @@ class UserController{
                 text += ++index  +'- '+ i.name + "   " +i.price + "   " +d.getMonth()+'/'+ d.getDay()  + " \n" ;
                 weekprice +=i.price ;
                 ctx.session.map_indextoorder[index ]  = i._id ;
-             //   console.log('index is '+ index  ); 
-
-              //  console.log(ctx.session.map_indextoorder[index ])
             }
-            text += ' : جمع کل ' + weekprice
-            await ctx.reply(text)
+            if (text == ''){
+                text = 'گزارشی نیست '  ;
+                let x = await ctx.reply(text);                   
+                return 
+            }
+            //text = 'گزارش هفتگی \n' + text  ; 
+            //text += ' : جمع کل ' + weekprice + ' \n'
+            //text += 'بدهی کل : ' + report[0].user.deptPrice ; 
+            let x = await ctx.reply(text);
            // console.log(ctx.session.map_indextoorder)
-            ctx.session.counter +=3 ;
             user.state = state.USER.DELETEORDER  ;
              await user.save()
 
         }
     }
+
+  
     async clearState( ctx , user){
         user.state = state.NOTHING ; 
         await user.save();
@@ -144,8 +170,21 @@ class UserController{
     
         
     
-    await ctx.reply( ' چه کاری هست ؟ '  + ctx.chat.first_name, keyboardSample.Userkeyboard) ;
-    ctx.session.counter =3 ;
+    let x = await ctx.reply( ' چه کاری هست ؟ '  + ctx.chat.first_name, keyboardSample.Userkeyboard) ;
+      
+   //   
+    }async deleteLastmessage(ctx , message_id ){
+        try{
+            for (let i of ctx.session.messagesId){
+                ctx.deleteMessage(i).catch((err)=>console.log(err))
+            }
+        }catch(err){
+           console.log(err)
+        }
+        ctx.session.messagesId = []
+
+        ctx.reply(' چه کاری هست ؟ '  + ctx.chat.first_name, keyboardSample.Userkeyboard) ;
+
     }
 }
 module.exports = new UserController() ;

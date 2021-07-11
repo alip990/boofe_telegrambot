@@ -13,6 +13,7 @@ const UserController = require('./controller/UserController');
 const { createCipher } = require('crypto');
 const { stat } = require('fs');
 const { Session } = require('inspector');
+const { createSecureContext } = require('tls');
 
 mongoose.connect('mongodb://localhost/mydatabase')
         .then(()=> console.log('connected to MongoDB ..'))
@@ -23,13 +24,36 @@ const Token = "1807114273:AAEOmls4fpqmYC5dlX8gzsye97Orlh7XLss"//config.get('bot.
 
 const bot = new Telegraf(Token)
 bot.use(session()) ;
+bot.use(async (ctx, next) =>
 
+{   
+    const update = ctx.update.message || ctx.update.callback_query.message;
+    if (false){
+      next();
+      return;
+    }
+    ctx.session ??= { counter: 0  ,messagesId  :  []   }
+    if (update.message_id)
+       ctx.session.messagesId.push(update.message_id)
+   
+    const originalReply = ctx.reply.bind(ctx)
 
-function check_session (ctx){
-    ctx.session ??= { counter: 0  }
-}
+    ctx.reply = async function () {
+        let x = await originalReply(...arguments)
+        
+        if (!ctx.session.messagesId.includes(x.message_id) ){
+            
+            ctx.session.messagesId.push(x.message_id) ;
+            }
+
+    }
+    console.log(ctx.session.messagesId)
+    next(); // <- and middleware chain continues there...
+  })
+
 try{
     bot.hears('phone', async(ctx, next) => {
+         ;
         await bot.telegram.sendMessage(ctx.chat.id, 'نیاز به شماره تلفن شما داریم اجازه میدهید?', keyboardSample.requestPhoneKeyboard);
 
 
@@ -38,11 +62,9 @@ try{
 
     bot.command('start',async (ctx) =>{ 
         let admin = await adminController.findAdmin(ctx) ;
-        check_session(ctx)
-        ctx.session.counter = 0 ;
+         
         if(admin){
             bot.telegram.sendMessage(ctx.chat.id, ' سلام خوش امدید', keyboardSample.Adminkeyboard);
-            ctx.session.counter +=2 ;
             adminController.clearState(ctx , admin )
             return ;         
         }
@@ -55,20 +77,18 @@ try{
                             state : state.USER.WAITEFORPHONE });     
             await user.save()
             bot.telegram.sendMessage(ctx.chat.id, 'نیاز به شماره تلفن شما داریم اجازه میدهید?', keyboardSample.requestPhoneKeyboard);
-            ctx.session.counter +=2 ;
         }else{    
         bot.telegram.sendMessage(ctx.chat.id, ' سلام خوش امدید'  + ctx.chat.first_name, keyboardSample.Userkeyboard) ;
-        ctx.session.counter +=2 ;
         await userController.clearState(ctx , user)
     }
 
     })
     bot.command('MakeMeAdmin',async (ctx)=>{   
-            check_session(ctx)
-            admin = await Admin.find({
+             
+            admin = await Admin.findOne({
                 chatId : ctx.chat.id
             })
-            if( admin.length  == 0){
+            if( admin){
                 admin = new Admin({
                     name: ctx.chat.first_name+ ctx.chat.last_name ,
                     chatId : ctx.chat.id , 
@@ -77,37 +97,39 @@ try{
                 }) 
                 await admin.save();
                 console.log(admin)
-                await ctx.reply('شما ادمین شدید ')
-                ctx.session.counter +=2 ;
+                let x = await ctx.reply(' شما ادمین شدید  یکبار /start بزنید')    
+                UserController.deleteLastmessage(ctx,ctx.message.messagesId);
             }else{
-                await ctx.reply(' قبلا ادمین بودید یکبار /start بزنید!')
-                ctx.session.counter +=2 ;
-
+                let x = await ctx.reply(' قبلا ادمین بودید یکبار /start بزنید!');
             }
         })
 
     bot.hears('حذف کالا',async (ctx)=>{
+         
         kalaController.showkalasInline(ctx) ; 
         await Admin.updateOne({chatId: ctx.chat.id , state: state.ADMIN.DELETEKALA});
         
     })
 
     bot.hears('گزارش هفتگی', async (ctx)=>{
+         
         userController.getWeecklyReport(ctx);
     })
     bot.hears('گزارش ماهانه', async (ctx)=>{
+         
         userController.getMountlyReport(ctx);
     })
     bot.hears("گزارش حساب هفتگی", async (ctx)=>{
+         
         adminController.getweeklyReport(ctx);
     });
 
     bot.hears("گزارش حساب ماهانه", async (ctx)=>{
-
+         
         adminController.getMountlyReport(ctx);
     });
     bot.hears("حذف از حساب", async (ctx)=>{
-        
+         
         let user  = await User.findOne({chatId : ctx.chat.id}) ;
         await userController.DeleteOrder(ctx , 0 , user) ;
 
@@ -115,28 +137,26 @@ try{
     });
 
     bot.hears('ویرایش کالا',async (ctx)=>{
-
+         
         kalaController.showkalasInline(ctx) ; 
         await Admin.updateOne({chatId: ctx.chat.id , state: state.ADMIN.CHANGEDETAIL.ENTERNAME});
     })
 
     bot.hears("افزودن موجودی کالا"  , async (ctx)=>{
-        check_session(ctx);
+        
         kalaController.ShowkalasInlinewithQuantity(ctx) ; 
-        ctx.session.counter +=4 ;
 
         await Admin.updateOne({chatId: ctx.chat.id , state: state.ADMIN.ADDQUNTITY.NAME});
         
     }) 
  
     bot.hears('خرید کالا',async(ctx)=>{    
-
         await kalaController.showkalasInline(ctx); 
         await User.update({chatId :ctx.chat.id , state :state.USER.BUYKALA })
         
     })
     bot.hears('تسویه کاربر',async(ctx)=>{    
-        check_session(ctx)
+         
         let users =await  User.find().select('name deptPrice')
         await Admin.updateOne({chatId: ctx.chat.id , state: state.ADMIN.USERCHECKOUT});
         ctx.session.users = users
@@ -146,53 +166,60 @@ try{
         for (i of users){
             text += ++index + "- "+i.name  + "  ....   " + i.deptPrice  + ' تومان \n'; 
         }
-        ctx.reply(text)
-        ctx.reply('شماره کابر را برای تسویه وارد کنید')
-        ctx.session.counter +=3 ; 
-    
+        let x = await ctx.reply(text)
+          
+        ctx.session.messagesId.push(ctx.update.message.message_id)
+        x =await ctx.reply('شماره کابر را برای تسویه وارد کنید')
+              
     })
     bot.hears('موجودی کالا', async (ctx)=> {
-        check_session(ctx) ;
+         ;
         admin = await adminController.findAdmin(ctx)
         if (!admin ){
-            await ctx.reply('شما ادمین نیستید')
-            ctx.session.counter +3 ;
+            let x = await ctx.reply('شما ادمین نیستید')
+              
+            ctx.session.messagesId.push(ctx.update.message.message_id)
             return
         }
         kalaController.ShowkalasInlinewithQuantity(ctx)
-        ctx.reply('...',keyboardSample.Adminkeyboard) ;
-        ctx.session.counter +=4 ;
+        let x = await ctx.reply('...',keyboardSample.Adminkeyboard) ;
+          
+        ctx.session.messagesId.push(ctx.update.message.message_id)
     } )
     bot.hears('اضافه کردن کالا',async (ctx)=>{
-        check_session(ctx)
+         
         admin = await adminController.findAdmin(ctx)
         if (!admin ){
-            await ctx.reply('شما ادمین نیستید')
-            ctx.session.counter +3 ;
+            let x  = await ctx.reply('شما ادمین نیستید')
+              
+            ctx.session.messagesId.push(ctx.update.message.message_id)
 
             return
         }
         admin.state = state.ADMIN.ADDNEWKALA.NAME
         await  admin.save()
-        await ctx.reply('نام کالا را وارد کنید')
-        ctx.session.counter +=3;
+        let x = await ctx.reply('نام کالا را وارد کنید')
+          
+        ctx.session.messagesId.push(ctx.update.message.message_id)
 
 
     })
     bot.command('addnewkala', async(ctx) => {
-        check_session(ctx)
+         
 
         let admin = await adminController.findAdmin(ctx)
         if (!admin ){
-            await ctx.reply('شما ادمین نیستید')
-            ctx.session.counter +3 ;
+            let x = await ctx.reply('شما ادمین نیستید')
+              
+            ctx.session.messagesId.push(ctx.update.message.message_id)
 
             return
         }
         admin.state = state.ADMIN.ADDNEWKALA.NAME
         await  admin.save()
-        await ctx.reply('نام کالا را وارد کنید')
-        ctx.session.counter +3 ;
+        let x = await ctx.reply('نام کالا را وارد کنید')
+          
+        ctx.session.messagesId.push(ctx.update.message.message_id)
 
 
     })
@@ -207,9 +234,8 @@ try{
         }
     }
     bot.action(predicateFn, async  (ctx) => {
-        check_session(ctx)
+         
         //await ctx.reply(ctx.update.callback_query.data);
-        ctx.session.counter += 1 ;
         let admin = await adminController.findAdmin(ctx) 
         //console.log(admin)     
         //console.log("action  ")
@@ -237,7 +263,7 @@ try{
     }) ; 
 
     bot.command('showkalas' , async(ctx)=>{
-        check_session(ctx)
+         
 
         kalaController.showkalasInline(ctx); 
         await User.update({chatId :ctx.chat.id , state :state.USER.BUYKALA })
@@ -247,7 +273,7 @@ try{
 
 
     bot.on("contact",async (ctx)=>{
-        check_session(ctx)
+         
         user =  await User.findOne({chatId : ctx.chat.id }); 
         console.log(user.state)
         if (user.state == state.USER.WAITEFORPHONE){
@@ -255,17 +281,19 @@ try{
             user.state =state.NOTHING ;
             await user.save();
             await UserController.deleteLastmessage(ctx  , ctx.message.message_id) 
-            ctx.reply(' سلام خوش امدید'  + ctx.chat.first_name, keyboardSample.Userkeyboard) ;
-            ctx.session.counter +3 ;
+            let x  = await ctx.reply(' سلام خوش امدید'  + ctx.chat.first_name, keyboardSample.Userkeyboard) ;
+              
+            ctx.session.messagesId.push(ctx.update.message.message_id)
         }else {
-            await ctx.reply('شماره تلفن شما رو نیاز ندارم ')
-            ctx.session.counter +2 ;
+            let x =await ctx.reply('شماره تلفن شما رو نیاز ندارم ')
+              
+            ctx.session.messagesId.push(ctx.update.message.message_id)
 
         }
     })
 
     bot.on('text', async (ctx) => {
-        check_session(ctx)
+         
         console.log(' in text')
         let admin = await adminController.findAdmin(ctx) 
         if (admin){ //admin text 
