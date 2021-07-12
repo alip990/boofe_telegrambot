@@ -6,9 +6,9 @@ const User = require ('../models/user')   ;
 
 class KalaController{
     async showkalasInline(ctx){
+        try {
         const kalas = await Kala.find () ;
         let inline_keyboard= [];
-
         for (var i = 0; i < kalas.length; i += 2) {
             if(i+1<kalas.length){
                 inline_keyboard.push([{text :kalas[i].name ,   callback_data: kalas[i].name} ,
@@ -17,12 +17,14 @@ class KalaController{
             else {            
                 inline_keyboard.push([{text :kalas[i].name ,   callback_data: kalas[i].name} ]);
             }
-    
             }
         //inline_keyboard.push([{text : 'back' ,callback_data :'back ' } ])
-            let x = await ctx.reply( "لیست کالا ", {
+            await ctx.reply( "لیست کالا ", {
                 reply_markup: {inline_keyboard
-                }})                 
+                }})  
+        }catch(err){
+            console.log(err)
+        }              
     }
     async ShowkalasInlinewithQuantity (ctx){
         

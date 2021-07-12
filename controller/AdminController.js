@@ -19,31 +19,22 @@ class AdminController{
     async addNewKala(ctx ,admin){
         console.log(admin.state)
         if (admin.state == state.ADMIN.ADDNEWKALA.NAME ) {
-           this.kala_stack.push(ctx.message.text) ;
+            ctx.session.kalaname = ctx.message.text ; 
             //console.log(ctx.message.text) ; 
             admin.state = state.ADMIN.ADDNEWKALA.PRICE ; 
             await admin.save();
-            let x =await ctx.reply('قیمت ' + ctx.message.text + ' را وارد کنید');
-              
-              
- 
+            await ctx.reply('قیمت ' + ctx.message.text + ' را وارد کنید');
             return
     
         }else if(admin.state == state.ADMIN.ADDNEWKALA.PRICE){
             let  pr = parseInt(ctx.message.text)
                 if (pr) {
-                    this.kala_stack.push(pr) ; 
-                    let x = await ctx.reply('موجودی را وارد کنید') ; 
-                      
-                      
-
+                    ctx.session.price = pr ; 
+                    await ctx.reply('موجودی را وارد کنید') ; 
                     admin.state = state.ADMIN.ADDNEWKALA.QUANTITY 
                     await admin.save(); 
                 }else {
-                    let x = await ctx.reply('وردی باید عدد باشد' ) ;
-                      
-                      
-
+                    await ctx.reply('وردی باید عدد باشد' ) ;
                     return ; 
                 }
                    
@@ -51,26 +42,20 @@ class AdminController{
             else if(admin.state == state.ADMIN.ADDNEWKALA.QUANTITY){
                 let  qu=parseInt(ctx.message.text)
                 if (qu) {
-                   this.kala_stack.push(qu) ; 
+                    ctx.session.quntity = qu
                 }else {
-                    let x = await ctx.reply('ورودی باید عدد باشد ' ) ;
-                      
-                      
-
+                    await ctx.reply('ورودی باید عدد باشد ' ) ;
                     return ; 
                 }
                 admin.state = state.NOTHING
                 await admin.save();    
                 let kala = new Kala();
-                kala.availbequantity =this.kala_stack.pop();
-                kala.price =this.kala_stack.pop();
-                kala.name =this.kala_stack.pop();
+                kala.availbequantity =ctx.session.quntity
+                kala.price = ctx.session.price
+                kala.name =ctx.session.kalaname
                 await kala.save()
-                let x = await ctx.reply(kala.name+' به لیست کالا ها اضافه شد') ; 
-                  
-                  
                 this.deleteLastmessage(ctx , ctx.message.message_id ) ;
-
+                await ctx.reply(kala.name+' به لیست کالا ها اضافه شد') ;                   
             } 
     }
     async deleteKala(ctx , kalaname){
@@ -78,174 +63,139 @@ class AdminController{
         await Kala.deleteOne({name : kalaname}) ; 
         admin.state = state.NOTHING ; 
         await admin.save();
-        let x = await ctx.reply(kalaname +' از لیست کالاها حذف شد ') ;
-          
-            
         this.deleteLastmessage(ctx  , ctx.update.callback_query.message.message_id) ;
-
-
-
+        await ctx.reply(kalaname +' از لیست کالاها حذف شد ') ;
     }
-    async addquantity(ctx , admin){
+    async addquantity(ctx , admin , kalaname){
         if(admin.state == state.ADMIN.ADDQUNTITY.NAME){
-            let x = await ctx.reply('تعداد ' + kalaname + 'وارد کنید ') ; 
-              
-               
-
-            this.kala_stack.push(kalaname) ;
+            await ctx.reply(' تعداد ' + kalaname + 'وارد کنید ') ;         
+            ctx.session.kalaname = kalaname ;
             admin.state = state.ADMIN.ADDQUNTITY.PRICE ; 
             admin.save();
         }else if(admin.state == state.ADMIN.ADDQUNTITY.PRICE){
             let  qu=parseInt(ctx.message.text)
                 if (qu) {
-                    let kala = await Kala.findOne({name : this.kala_stack  });
+                    let kala = await Kala.findOne({name : ctx.session.kalaname });
                     kala.availbequantity += qu ; 
                     kala.save();
                     this.deleteLastmessage(ctx,ctx.message.message_id ) ;
-                    let x = await ctx.reply(`موجودی ${ kala.name } =  ${kala.availbequantity}`) ;                       
-
+                    await ctx.reply(`موجودی ${ kala.name } =  ${kala.availbequantity}`) ;                       
                     admin.state = state.NOTHING ; 
                     admin.save()  ;
-
                 }else {
-                    let x = await ctx.reply('ورودی باید عدد باشد' ) ;
-                      
-                    
+                    await ctx.reply('ورودی باید عدد باشد' ) ;
                     return ; 
                 }
-
         }
     }
     
     async changedetailkala(ctx ,admin, kalaname =''){
-        console.log(" in change detail function ")
         if(admin.state == state.ADMIN.CHANGEDETAIL.ENTERNAME){
-            let x = await ctx.reply(' نام جدید را وارد کنید ' + kalaname) ; 
-              
-            this.kala_stack.push(kalaname) ;
+            await ctx.reply(' نام جدید را وارد کنید ' + kalaname) ; 
+            ctx.session.kalaname =  kalaname ; 
             admin.state = state.ADMIN.CHANGEDETAIL.NAME
             admin.save();
         }
         else if (admin.state == state.ADMIN.CHANGEDETAIL.NAME){
-            let x = await ctx.reply('قیمت جدید را وارد کنید ') ;
-            this.kala_stack.push(ctx.message.text)
+            await ctx.reply('قیمت جدید را وارد کنید ') 
+            ctx.session.newname = ctx.message.text
             admin.state = state.ADMIN.CHANGEDETAIL.PRICE ;
             await admin.save();
         }
         else if (admin.state == state.ADMIN.CHANGEDETAIL.PRICE){
-            console.log("in change price ")
             let  pr=parseInt(ctx.message.text)
                 if (pr) {
-                    let new_name = this.kala_stack.pop() ;
-                    let old_name = this.kala_stack.pop();
+                    let new_name = ctx.session.newname;
+                    let old_name = ctx.session.kalaname;
                     let kala = await Kala.findOne({name:old_name}) ;
                     kala.name = new_name ; 
                     kala.price = pr ; 
                     await kala.save() ; 
                     await this.clearState(ctx , admin);
-                    let x = await ctx.reply(kala.name+ " ویرایش شد ");
-                      
-                      
-                    this.deleteLastmessage(ctx,ctx.message.message_id ) ;                
-
+                    this.deleteLastmessage(ctx,ctx.message.message_id ) ;   
+                    await ctx.reply(kala.name + " ویرایش شد ");              
                 }else {
-                    let x = await ctx.reply('ورودی باید عدد باشد' ) ;                    
+                    await ctx.reply('ورودی باید عدد باشد' ) ;                    
                     return ; 
-                }
-         
-            
+                }    
         }
     }async getweeklyReport(ctx){
-        let report = await BuyedItem.find().where('date').gt(new Date(new Date() - 7 * 60 * 60 * 24 * 1000)) .populate({path:'user'});
-        let text ='' ;
-        let weekprice =0 ;
-        let report_basedUser = {}
-        for (let i of report) {
-            let d= new Date(i.date) 
-            if (report_basedUser[i.user.name]){
-            
-                report_basedUser[i.user.name].list.push(i)
-                report_basedUser[i.user.name].text +=i.name + "  - " +i.price + "  - " +d.getMonth()+'/'+ d.getDay()  + " \n" ; ; 
-                report_basedUser[i.user.name].weekprice +=i.price
-
-
+        try {
+            let report = await BuyedItem.find().where('date').gt(new Date(new Date() - 7 * 60 * 60 * 24 * 1000)) .populate({path:'user'});
+            let text ='' ;
+            let weekprice =0 ;
+            console.log(report)
+            let report_basedUser = {}
+            for (let i of report) {
+                let d= new Date(i.date) 
+                if (report_basedUser[i.user.name]){
+                    report_basedUser[i.user.name].list.push(i)
+                    report_basedUser[i.user.name].text +=i.name + "  - " +i.price + "  - " +d.getMonth()+'/'+ d.getDay()  + " \n" ; ; 
+                    report_basedUser[i.user.name].weekprice +=i.price
+                }
+                else {
+                    report_basedUser[i.user.name]={} 
+                    report_basedUser[i.user.name].list = [i] ;
+                    report_basedUser[i.user.name].text = i.name + "  - " +i.price + " -  " +d.getMonth()+'/'+ d.getDay()  + " \n" ;
+                    report_basedUser[i.user.name].weekprice =i.price
+                }
+            }
+            for (let i in report_basedUser){
+                text += ' --- '+i + ' --- \n' +report_basedUser[i].text ;
 
             }
-            else {
-                report_basedUser[i.user.name]={} 
-                report_basedUser[i.user.name].list = [i] ;
-                report_basedUser[i.user.name].text = i.name + "  - " +i.price + " -  " +d.getMonth()+'/'+ d.getDay()  + " \n" ;
-                report_basedUser[i.user.name].weekprice =i.price
-
+            if(text == ''){
+                text = ' گزارشی نیست ' ; 
             }
+            await ctx.reply(text) ; 
+        }catch(err){
+            console.log(err);
         }
-        for (let i in report_basedUser){
-            text += ' --- '+i + ' --- \n' +report_basedUser[i].text ;
-            //console.log(report_basedUser[i])
-
-        }
-        if(text == ''){
-            text = ' گزارشی نیست ' ; 
-        }
-        let x = await ctx.reply(text) ; 
-          
           
      }async getMountlyReport(ctx){
-        let report = await BuyedItem.find().where('date').gt(new Date(new Date() - 30 * 60 * 60 * 24 * 1000)) .populate({path:'user'});
-        let text =''
-        let weekprice =0 ;
-        let report_basedUser = {}
-        for (let i of report) {
-            let d= new Date(i.date) 
-            if (report_basedUser[i.user.name]){
-            
-                report_basedUser[i.user.name].list.push(i)
-                report_basedUser[i.user.name].text +=i.name + "  - " +i.price + "  - " +d.getMonth()+'/'+ d.getDay()  + " \n" ; ; 
-                report_basedUser[i.user.name].weekprice +=i.price
-
-
-
+        try{
+            let report = await BuyedItem.find().where('date').gt(new Date(new Date() - 30 * 60 * 60 * 24 * 1000)).populate({path:'user'});
+            let text =''
+            let weekprice =0 ;
+            let report_basedUser = {}
+            for (let i of report) {
+                let d= new Date(i.date) 
+                if (report_basedUser[i.user.name]){            
+                    report_basedUser[i.user.name].list.push(i)
+                    report_basedUser[i.user.name].text +=i.name + "  - " +i.price + "  - " +d.getMonth()+'/'+ d.getDay()  + " \n" ; ; 
+                    report_basedUser[i.user.name].weekprice +=i.price
+                }
+                else {
+                    report_basedUser[i.user.name]={} 
+                    report_basedUser[i.user.name].list = [i] ;
+                    report_basedUser[i.user.name].text = i.name + "  - " +i.price + " -  " +d.getMonth()+'/'+ d.getDay()  + " \n" ;
+                    report_basedUser[i.user.name].weekprice =i.price
+                }
             }
-            else {
-                report_basedUser[i.user.name]={} 
-                report_basedUser[i.user.name].list = [i] ;
-                report_basedUser[i.user.name].text = i.name + "  - " +i.price + " -  " +d.getMonth()+'/'+ d.getDay()  + " \n" ;
-                report_basedUser[i.user.name].weekprice =i.price
-
+            for (let i in report_basedUser){
+                text += ' --- '+i + ' --- \n' +report_basedUser[i].text ;
             }
+            if(text == ''){
+                text = ' گزارشی نیست ' ; 
+            }
+            await ctx.reply(text)     
+        }catch(err){
+            console.log(err);
         }
-        for (let i in report_basedUser){
-            text += ' --- '+i + ' --- \n' +report_basedUser[i].text ;
-        //    console.log(report_basedUser[i])
-
-        }
-        if(text == ''){
-            text = ' گزارشی نیست ' ; 
-        }
-        let x = await ctx.reply(text)
-          
-          
-      
-     }
-    async checkout(ctx,index){
+    }async checkout(ctx,index){
         let  number=parseInt(index)
             if (!number){
-                let x = await ctx.reply('ورودی باید عدد باشد' ) ;
-                  
+                await ctx.reply('ورودی باید عدد باشد' ) ;          
                 return ; 
             }
         await User.update({_id : ctx.session.users[index-1]._id , deptPrice : 0 })
-        console.log(ctx.session.users[index-1])
-        let x = ctx.reply('حساب ' +ctx.session.users[index-1].name + " تسویه شد" )
-          
-          
         await this.deleteLastmessage(ctx ,ctx.message.message_id)
+        ctx.reply(' حساب ' +ctx.session.users[index-1].name + " تسویه شد" )  
+
     }
     async clearState( ctx , admin){
-        this.kala_stack =[] ;
         admin.state = state.NOTHING ; 
         await admin.save();
-        //this.deleteLastmessage(ctx ,ctx.message.message_id) ;
     }
     async deleteLastmessage(ctx , message_id ){
         try{
@@ -256,11 +206,7 @@ class AdminController{
            console.log(err)
         }
         ctx.session.messagesId = []
-
         ctx.reply(' چه کاری هست ؟ '  + ctx.chat.first_name, keyboardSample.Adminkeyboard) ;
-
     }
-
-
 }
 module.exports = new AdminController()

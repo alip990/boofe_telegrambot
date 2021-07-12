@@ -1,0 +1,20 @@
+{
+    "Admin" :{
+      "DeleteKala" : "حذف کالا" , 
+      "WeeklyReport" : "گزارش حساب هفتگی",
+      "MountlyReport" : "گزارش حساب ماهانه" ,
+      "ChangeKala" : "ویرایش کالا"  ,
+      "AddQuantity" : "افزودن موجودی کالا" ,
+      "Checkout" : "تسویه کاربر" ,
+      "Stock" : "موجودی کالا" ,
+      "AddNewKala" : "اضافه کردن کالا"
+    }
+    ,"User" : {
+      "WeeklyReport" :"گزارش هفتگی" ,
+      "MountlyReport" : "گزارش ماهانه" ,
+      "DeleteOrder" : "حذف از حساب" ,
+      "BuyKala" :"خرید کالا" ,
+      "PhoneNumber" : "شماره ی من "
+    }
+  }
+  

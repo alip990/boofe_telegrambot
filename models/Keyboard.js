@@ -1,4 +1,5 @@
 
+const Commands = require('./commands.json'); 
 class KeyboardSample{
     constructor(){
         this.requestPhoneKeyboard = {
@@ -6,7 +7,7 @@ class KeyboardSample{
                 "one_time_keyboard": true,
                 "keyboard": [
                     [{  
-                        text: "My phone number",
+                        text: Commands.User.PhoneNumber,
                         request_contact: true,
                         one_time_keyboard: true
                     }],
@@ -19,33 +20,33 @@ class KeyboardSample{
                 "one_time_keyboard": true,
                 "keyboard": [
                     [{  
-                        text: "اضافه کردن کالا",
+                        text: Commands.Admin.AddNewKala,
                         one_time_keyboard: true
                     },{
-                        text: "حذف کالا",
+                        text: Commands.Admin.DeleteKala,
                         one_time_keyboard: true
                     },
                     {
-                        text: "ویرایش کالا",
+                        text: Commands.Admin.ChangeKala,
                         one_time_keyboard: true  
                     },
                 ],
                     [ {
-                        text: "موجودی کالا",
+                        text: Commands.Admin.Stock,
                         one_time_keyboard: true  
                     },
                     {
-                        text: "گزارش حساب ماهانه",
+                        text: Commands.Admin.MountlyReport,
                         one_time_keyboard: true  
                     },
                     {
-                        text: "گزارش حساب هفتگی",
+                        text: Commands.Admin.WeeklyReport,
                         one_time_keyboard: true  
                     }],[{
-                        text: "تسویه کاربر",
+                        text: Commands.Admin.Checkout,
                         one_time_keyboard: true  
                     }],[{
-                        text: "افزودن موجودی کالا",
+                        text: Commands.Admin.AddQuantity,
                         one_time_keyboard: true  
                     }] 
                 ]
@@ -57,34 +58,22 @@ class KeyboardSample{
                 "one_time_keyboard": true,
                 "keyboard": [
                     [{  
-                        text: "خرید کالا ",
+                        text: Commands.User.BuyKala,
                         one_time_keyboard: true
                     },{  
-                        text: "حذف از حساب",
+                        text: Commands.User.DeleteOrder,
                         one_time_keyboard: true
                     }],[{  
-                        text: "گزارش ماهانه",
+                        text: Commands.User.MountlyReport,
                         one_time_keyboard: true
                     },{  
-                        text: "گزارش هفتگی",
+                        text: Commands.User.WeeklyReport,
                         one_time_keyboard: true
                     }],
                 ]
             }
         };
-        this.startKeyBoard = {
-            "reply_markup": {
-                "one_time_keyboard": true ,
-                "keyboard": [
-                    [{
-                        text: "لیست خوراکی ها ",
-                        one_time_keyboard: true , 
-                        callback_data : '/showkalas'
-                    }],
-                    ["Cancel"]
-                ]
-            }
-        };
+        
     }
 }
 
