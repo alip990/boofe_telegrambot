@@ -12,7 +12,7 @@ type Hideable<B> = B & { hide?: boolean }
 type HideableKBtn = Hideable<KeyboardButton>
 type HideableIKBtn = Hideable<InlineKeyboardButton>
 
-class Markup<
+export class Markup<
   T extends
     | InlineKeyboardMarkup
     | ReplyKeyboardMarkup
@@ -26,6 +26,16 @@ class Markup<
     value = true
   ) {
     return new Markup<T>({ ...this.reply_markup, selective: value })
+  }
+
+  placeholder<T extends ForceReply | ReplyKeyboardMarkup>(
+    this: Markup<T>,
+    placeholder: string
+  ) {
+    return new Markup<T>({
+      ...this.reply_markup,
+      input_field_placeholder: placeholder,
+    })
   }
 
   resize(this: Markup<ReplyKeyboardMarkup>, value = true) {

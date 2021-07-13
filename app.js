@@ -110,7 +110,7 @@ bot.command('MakeMeAdmin',async (ctx)=>{
         let admin = await adminController.findAdmin(ctx);
         if(!admin){
             ctx.reply('پسورد را وارد کنید')
-            await  User.updateOne({chatId : ctx.chat.id , state : state.USER.MAKEMEADMIN}) ;
+            await  User.updateOne({chatId : ctx.chat.id }, {state : state.USER.MAKEMEADMIN}) ;
         }else{
             await ctx.reply(' قبلا ادمین بودید یکبار /start بزنید!');
         }

@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "chromium": "^3.0.2",
+    "mongoose": "^5.13.2",
+    "node-html-to-image": "^3.2.0",
+    "puppeteer-core": "^10.1.0",
+    "telegraf": "^4.4.0"
+  }
+}

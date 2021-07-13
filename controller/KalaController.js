@@ -27,8 +27,7 @@ class KalaController{
         }              
     }
     async ShowkalasInlinewithQuantity (ctx){
-        
-
+        try{
         const kalas = await Kala.find () ;
         let inline_keyboard= [];
         for (var i = 0; i < kalas.length; i += 2) {
@@ -49,6 +48,9 @@ class KalaController{
         //     reply_markup: {inline_keyboard}})    
 
         //  
+        }catch(err){
+            console.log(err)
+        }
     } ; 
     
 }
