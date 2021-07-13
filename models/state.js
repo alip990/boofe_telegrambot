@@ -12,6 +12,7 @@ const  State = class  {
             WAITEFORPHONE :'WaitForPhone' , 
             MAKEMEADMIN : 'MakeMeAdmin',
             BUYKALA : 'BuyKala' ,
+            BUYKALAQUNTITY :'BuyKalaQuantity',
             DELETEORDER : 'DelereOrder'
 
         }

@@ -135,7 +135,7 @@ bot.hears(Commands.Admin.MountlyReport, async (ctx)=>{
     
     adminController.getMountlyReport(ctx);
 });
-bot.hears(Commands.User.WeeklyReport, async (ctx)=>{
+bot.hears(Commands.User.DeleteOrder, async (ctx)=>{
     let user  = await User.findOne({chatId : ctx.chat.id}) ;
     await userController.DeleteOrder(ctx , 0 , user) ;
     //adminController.getMountlyReport(ctx);
@@ -153,7 +153,7 @@ bot.hears(Commands.Admin.AddQuantity  , async (ctx)=>{
 }) 
 
 bot.hears(Commands.User.BuyKala,async(ctx)=>{    
-    await kalaController.showkalasInline(ctx); 
+    await kalaController.ShowkalasInlinewithPrice(ctx); 
     await User.updateOne({chatId :ctx.chat.id} , {state :state.USER.BUYKALA })
     
 })
@@ -180,7 +180,6 @@ bot.hears(Commands.Admin.AddNewKala,async (ctx)=>{
     await ctx.reply('نام کالا را وارد کنید')
 
 })
-
 async function predicateFn (callbackData) {
     if (callbackData === "back")
         return true  ; 
@@ -188,7 +187,6 @@ async function predicateFn (callbackData) {
     for(kala in kalas ){
         if (kala.name === callbackData)
             return true ;
-        
     }
 }
 bot.action(predicateFn, async  (ctx) => {
@@ -265,6 +263,8 @@ bot.on('text', async (ctx) => {
             userController.DeleteOrder(ctx , ctx.message.text , user)
         }else if (user.state == state.USER.MAKEMEADMIN){
             userController.adminCheckPass(ctx) ;
+        }else if(user.state == state.USER.BUYKALAQUNTITY){
+            userController.buy_kala(ctx )
         }
 
     }

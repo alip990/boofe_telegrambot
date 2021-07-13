@@ -17,7 +17,7 @@ class AdminController{
         return admin ;
     }
     async addNewKala(ctx ,admin){
-        
+        try{
         if (admin.state == state.ADMIN.ADDNEWKALA.NAME ) {
             ctx.session.kalaname = ctx.message.text ; 
             //console.log(ctx.message.text) ; 
@@ -56,18 +56,26 @@ class AdminController{
                 this.deleteLastmessage(ctx , ctx.message.message_id ) ;
                 await ctx.reply(kala.name+' به لیست کالا ها اضافه شد') ;                   
             } 
+        }catch(err){
+            console.log(err)
+        }
     }
     async deleteKala(ctx , kalaname){
+        try{
         let admin = await this.findAdmin(ctx) ;
         await Kala.deleteOne({name : kalaname}) ; 
         admin.state = state.NOTHING ; 
         await admin.save();
         this.deleteLastmessage(ctx  , ctx.update.callback_query.message.message_id) ;
         await ctx.reply(kalaname +' از لیست کالاها حذف شد ') ;
+        }catch(err){
+            console.log(err)
+        }
     }
     async addquantity(ctx , admin , kalaname){
+        try{
         if(admin.state == state.ADMIN.ADDQUNTITY.NAME){
-            await ctx.reply(' تعداد ' + kalaname + 'وارد کنید ') ;         
+            await ctx.reply(' تعداد ' + kalaname + ' وارد کنید ') ;         
             ctx.session.kalaname = kalaname ;
             admin.state = state.ADMIN.ADDQUNTITY.PRICE ; 
             admin.save();
@@ -86,8 +94,12 @@ class AdminController{
                     return ; 
                 }
         }
-    }
+        }catch(err){
+            console.log(err)
+        }
+    }   
     async changedetailkala(ctx ,admin, kalaname =''){
+        try{
         if(admin.state == state.ADMIN.CHANGEDETAIL.ENTERNAME){
             await ctx.reply(' نام جدید را وارد کنید ' + kalaname) ; 
             ctx.session.kalaname =  kalaname ; 
@@ -116,6 +128,9 @@ class AdminController{
                     await ctx.reply('ورودی باید عدد باشد' ) ;                    
                     return ; 
                 }    
+        }
+        }catch(err){
+            console.log(err)
         }
     }async getweeklyReport(ctx){
         try {
@@ -291,6 +306,28 @@ class AdminController{
         }
           
      }
+     async checkout(ctx,index){
+        try{
+        let  qu=parseInt(ctx.message.text) ; 
+        if(!qu) {
+            await ctx.reply('ورودی باید عدد باشد دوباره وارد کنید ' ) ;
+            return ; 
+        }
+        if (!ctx.session.users[index-1]){
+            await ctx.reply(' ردیف کاربر اشتباه است دوباره وارد کنید ' ) ;
+            return ;
+        }
+        await User.update({_id : ctx.session.users[index-1]._id },{deptPrice : 0 })
+        console.log(ctx.session.users[index-1])
+        ctx.reply('حساب ' +ctx.session.users[index-1].name + " تسویه شد" )
+        ctx.session.counter +=2;
+        }catch(err){
+            console.log(err)
+        }
+        await this.deleteLastmessage(ctx ,ctx.message.message_id)
+
+    }
+
     async clearState( ctx , admin){
         admin.state = state.NOTHING ; 
         await admin.save();
