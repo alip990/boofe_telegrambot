@@ -2,13 +2,13 @@ mongoose = require('mongoose')
 
     const paymentSchema = new mongoose.Schema({
         price : Number , 
-        userchatId : String , 
+        user : {type :mongoose.Schema.Types.ObjectId , ref :"User" } , 
         // quantity : Number   ,
         date :  { type: Date, default: Date.now },    
     })
 
 
 
-const BuyedItem = mongoose.model('BuyedItem' , buyedItemSchema ) ; 
+const Payment = mongoose.model('Payment' , paymentSchema ) ; 
 
-module.exports = BuyedItem ;
+module.exports = Payment ;

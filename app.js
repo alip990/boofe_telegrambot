@@ -11,6 +11,7 @@ const kalaController  = require('./controller/KalaController');
 const keyboardSample = require ('./models/Keyboard');
 const UserController = require('./controller/UserController');
 const Commands = require('./models/commands.json'); 
+const AdminController = require('./controller/AdminController');
 
 require('dotenv').config();
 mongoose.connect(process.env.DATABASE)
@@ -116,7 +117,16 @@ bot.command('MakeMeAdmin',async (ctx)=>{
             await ctx.reply(' قبلا ادمین بودید یکبار /start بزنید!');
         }
     })
-
+bot.command('Logout',async (ctx)=>{  
+        let admin = await adminController.findAdmin(ctx);
+        if(admin){
+            await Admin.deleteOne({chatId :ctx.chat.id}) ;
+            await  User.updateOne({chatId : ctx.chat.id }, {state : state.USER.NOTHING}) ;
+            ctx.reply('شما خارج شدید' ,keyboardSample.Userkeyboard )
+        }else{
+            await ctx.reply('شما ادمین نیستید');
+        }
+    })
 bot.hears(Commands.Admin.DeleteKala,async (ctx)=>{
     kalaController.showkalasInline(ctx) ; 
     await Admin.updateOne({chatId: ctx.chat.id , state: state.ADMIN.DELETEKALA});

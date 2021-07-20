@@ -6,6 +6,7 @@ const Admin = require ('../models/admin') ;
 const Kala = require('../models/kala') ;
 const User = require ('../models/user') ;
 const BuyedItem = require('../models/buyeditem');
+const Payment = require ('../models/payment');
 const keyboardSample = require ('../models/Keyboard');
 const { receiveMessageOnPort } = require('worker_threads');
 const puppeteer = require('puppeteer')
@@ -324,8 +325,11 @@ class AdminController{
             await ctx.reply(' ردیف کاربر اشتباه است دوباره وارد کنید ' ) ;
             return ;
         }
-        await User.update({_id : ctx.session.users[index-1]._id },{deptPrice : 0 })
-        console.log(ctx.session.users[index-1])
+        
+        let user = await User.findOne({_id : ctx.session.users[index-1]._id })
+        await Payment.create({user : ctx.session.users[index-1]._id  , price:user.deptPrice})
+        user.deptPrice=0;
+        user.save();
         ctx.reply('حساب ' +ctx.session.users[index-1].name + " تسویه شد" )
         ctx.session.counter +=2;
         }catch(err){

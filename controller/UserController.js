@@ -279,7 +279,7 @@ class UserController{
             }) 
             await admin.save();
             await  User.updateOne({chatId : ctx.chat.id }, {state : state.NOTHING}) ;
-            this.deleteLastmessage(ctx,ctx.message.messagesId);
+            await this.deleteLastmessage(ctx,ctx.message.messagesId);
             await ctx.reply(' شما ادمین شدید ' ,keyboardSample.Adminkeyboard )    
         }
         else{
@@ -300,10 +300,7 @@ class UserController{
            console.log(err)
         }
         ctx.session.messagesId = []
-        if (!text)
-            ctx.reply(' چه کاری هست ؟ '  + ctx.chat.first_name, keyboardSample.Userkeyboard) ;
-        else 
-            ctx.reply(text  + ctx.chat.first_name, keyboardSample.Userkeyboard) ;
+        await ctx.reply(' چه کاری هست ؟ '  + ctx.chat.first_name, keyboardSample.Userkeyboard) ;
 
     }
 }

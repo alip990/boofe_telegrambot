@@ -6,7 +6,8 @@ const  State = class  {
                       DELETEKALA : 'DELTEKALA',
                       CHANGEDETAIL:{ENTERNAME :'ChangeDetailEnterName' ,NAME:'ChangeDetailName', PRICE : 'ChangeDetailPrice'} ,
                       ADDQUNTITY: { NAME :"AddQuantityName" , QUANTITY:'AddQuantiryQuantity'},
-                      USERCHECKOUT : 'UserCheckOut'
+                      USERCHECKOUT : {'SELECTUSER':'UserCheckOut1' ,'ENTERPRICE':'UserCheckOut2'}
+
         }
         this.USER ={
             WAITEFORPHONE :'WaitForPhone' , 
