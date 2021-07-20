@@ -10,6 +10,7 @@ const Payment = require ('../models/payment');
 const keyboardSample = require ('../models/Keyboard');
 const { receiveMessageOnPort } = require('worker_threads');
 const puppeteer = require('puppeteer')
+const  jalali = require('jalali-moment');
 
 class AdminController{
     constructor(){
@@ -163,7 +164,7 @@ class AdminController{
 
             for (let i in report_basedUser){
                 html +=`<table style="width:100%" border="1" cellpadding="5px" >
-                <h3>${report_basedUser[i].list[0].user.name}<h3>
+                <h3>${report_basedUser[i].list[0].user.name}    ${report_basedUser[i].list[0].user.phone}<<h3>
                 <tr>
                     <th>نام</th>
                     <th>فی</th>
@@ -178,11 +179,11 @@ class AdminController{
                 {   j=report_basedUser[i].list[j]
                     if(j.user){
                         html +=`  <tr>
-                        <td align ="center">${i.name}</td>
-                        <td align ="center">${i.price/i.quantity}</td>
-                        <td align ="center">${i.quantity}</td>
-                        <td align ="center">${i.price}</td>
-                        <td align ="center">${jalali(i.date , 'YYYY-M-D HH:mm:ss').locale('fa').format('YYYY/M/D')}</td>
+                        <td align ="center">${j.name}</td>
+                        <td align ="center">${j.price/j.quantity}</td>
+                        <td align ="center">${j.quantity}</td>
+                        <td align ="center">${j.price}</td>
+                        <td align ="center">${jalali(j.date , 'YYYY-M-D HH:mm:ss').locale('fa').format('YYYY/M/D')}</td>
                     </tr>
                     `
                     weekprice +=j.price ;
@@ -253,7 +254,7 @@ class AdminController{
 
             for (let i in report_basedUser){
                 html +=`<table style="width:100%" border="1" cellpadding="5px" >
-                <h3>${report_basedUser[i].list[0].user.name}<h3>
+                <h3>${report_basedUser[i].list[0].user.name}  ${report_basedUser[i].list[0].user.phone}<h3>
                     <tr>
                     <th>نام</th>
                     <th>فی</th>
@@ -268,11 +269,11 @@ class AdminController{
                 {   j=report_basedUser[i].list[j]
                     if(j.user){
                         html +=`  <tr>
-                        <td align ="center">${i.name}</td>
-                        <td align ="center">${i.price/i.quantity}</td>
-                        <td align ="center">${i.quantity}</td>
-                        <td align ="center">${i.price}</td>
-                        <td align ="center">${jalali(i.date , 'YYYY-M-D HH:mm:ss').locale('fa').format('YYYY/M/D')}</td>
+                        <td align ="center">${j.name}</td>
+                        <td align ="center">${j.price/j.quantity}</td>
+                        <td align ="center">${j.quantity}</td>
+                        <td align ="center">${j.price}</td>
+                        <td align ="center">${jalali(j.date , 'YYYY-M-D HH:mm:ss').locale('fa').format('YYYY/M/D')}</td>
                     </tr>
                     `
                     weekprice +=j.price ;
@@ -325,7 +326,7 @@ class AdminController{
             await ctx.reply(' ردیف کاربر اشتباه است دوباره وارد کنید ' ) ;
             return ;
         }
-        
+
         let user = await User.findOne({_id : ctx.session.users[index-1]._id })
         await Payment.create({user : ctx.session.users[index-1]._id  , price:user.deptPrice})
         user.deptPrice=0;
