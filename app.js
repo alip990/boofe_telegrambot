@@ -12,6 +12,10 @@ const keyboardSample = require ('./models/Keyboard');
 const UserController = require('./controller/UserController');
 const Commands = require('./models/commands.json'); 
 const AdminController = require('./controller/AdminController');
+const  fs = require('fs');
+if (!fs.existsSync('images')){
+    fs.mkdirSync('images');
+}
 
 require('dotenv').config();
 mongoose.connect(process.env.DATABASE)

@@ -269,7 +269,7 @@ class UserController{
     }
     async adminCheckPass(ctx){
         try{
-        let pass = 'asd123' ; 
+        let pass = process.env.ADMINPASSWORD ; 
         if (ctx.message.text == pass){
             let admin = new Admin({
                 name: ctx.chat.first_name+ ctx.chat.last_name ,
