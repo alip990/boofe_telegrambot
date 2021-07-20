@@ -134,7 +134,8 @@ class AdminController{
         }catch(err){
             console.log(err)
         }
-    }async getweeklyReport(ctx){
+    }
+    async getweeklyReport(ctx){
         try {
             let report = await BuyedItem.find().where('date').gt(new Date(new Date() - 7 * 60 * 60 * 24 * 1000)) .populate({path:'user'});
             
@@ -164,10 +165,11 @@ class AdminController{
                 <h3>${report_basedUser[i].list[0].user.name}<h3>
                 <tr>
                     <th>نام</th>
-                    <th>تعداد</th>
+                    <th>فی</th>
+                    <th>تعداد</th> 
                     <th>قیمت</th>  
                     <th>تاریخ</th>
-                  </tr>
+                </tr>
                 `  
                 let     weekprice =0
                 let user_dept=0
@@ -175,10 +177,11 @@ class AdminController{
                 {   j=report_basedUser[i].list[j]
                     if(j.user){
                         html +=`  <tr>
-                        <td align ="center">${j.name}</td>
-                        <td align ="center">${j.price}</td>
-                        <td align ="center">1</td>
-                        <td align ="center">${j.date.toDateString()}</td>
+                        <td align ="center">${i.name}</td>
+                        <td align ="center">${i.price/i.quantity}</td>
+                        <td align ="center">${i.quantity}</td>
+                        <td align ="center">${i.price}</td>
+                        <td align ="center">${jalali(i.date , 'YYYY-M-D HH:mm:ss').locale('fa').format('YYYY/M/D')}</td>
                     </tr>
                     `
                     weekprice +=j.price ;
@@ -221,7 +224,8 @@ class AdminController{
             console.log(err);
         }
           
-     }async getMountlyReport(ctx){
+     }
+    async getMountlyReport(ctx){
         try {
             let report = await BuyedItem.find().where('date').gt(new Date(new Date() - 7 * 60 * 60 * 24 * 1000)) .populate({path:'user'});
             
@@ -249,12 +253,13 @@ class AdminController{
             for (let i in report_basedUser){
                 html +=`<table style="width:100%" border="1" cellpadding="5px" >
                 <h3>${report_basedUser[i].list[0].user.name}<h3>
-                <tr>
+                    <tr>
                     <th>نام</th>
-                    <th>تعداد</th>
+                    <th>فی</th>
+                    <th>تعداد</th> 
                     <th>قیمت</th>  
                     <th>تاریخ</th>
-                  </tr>
+              </tr>
                 `  
                 let     weekprice =0
                 let user_dept=0
@@ -262,10 +267,11 @@ class AdminController{
                 {   j=report_basedUser[i].list[j]
                     if(j.user){
                         html +=`  <tr>
-                        <td align ="center">${j.name}</td>
-                        <td align ="center">${j.price}</td>
-                        <td align ="center">1</td>
-                        <td align ="center">${j.date.toDateString()}</td>
+                        <td align ="center">${i.name}</td>
+                        <td align ="center">${i.price/i.quantity}</td>
+                        <td align ="center">${i.quantity}</td>
+                        <td align ="center">${i.price}</td>
+                        <td align ="center">${jalali(i.date , 'YYYY-M-D HH:mm:ss').locale('fa').format('YYYY/M/D')}</td>
                     </tr>
                     `
                     weekprice +=j.price ;

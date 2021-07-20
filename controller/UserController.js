@@ -8,6 +8,7 @@ const BuyedItem = require('../models/buyeditem');
 const keyboardSample = require ('../models/Keyboard');
 const puppeteer = require('puppeteer');
 const AdminController = require('./AdminController');
+const  jalali = require('jalali-moment');
 class UserController{
     constructor(){
     }
@@ -89,8 +90,10 @@ class UserController{
 <table style="width:100%" border="1" cellpadding="5px" >
 <tr>
     <th>نام</th>
-    <th>قیمت</th>
-    <th>تعداد</th>  
+    <th>فی</th>
+    <th>تعداد</th> 
+    <th>قیمت</th>  
+ 
     <th>تاریخ</th>
   </tr>
 `       
@@ -102,9 +105,10 @@ class UserController{
                 
                 html +=`  <tr>
                 <td align ="center"> ${index}- ${i.name}</td>
-                <td align ="center">${i.price}</td>
+                <td align ="center">${i.price/i.quantity}</td>
                 <td align ="center">${i.quantity}</td>
-                <td align ="center">${i.date.toDateString()}</td>
+                <td align ="center">${i.price}</td>
+                <td align ="center">${jalali(i.date , 'YYYY-M-D HH:mm:ss').locale('fa').format('YYYY/M/D')}</td>
             </tr>
             `
             ctx.session.map_index_order[index ]  = i._id ;
@@ -162,27 +166,29 @@ class UserController{
 <h2> گزارش حساب ماهانه</h2>
 <table style="width:100%" border="1" cellpadding="5px" >
 <tr>
-    <th>نام</th>
-    <th>قیمت</th>
-    <th>تعداد</th>  
-    <th>تاریخ</th>
-  </tr>
+                    <th>نام</th>
+                    <th>فی</th>
+                    <th>تعداد</th> 
+                    <th>قیمت</th>  
+                    <th>تاریخ</th>
+              </tr>
 `       
-        let     weekprice =0
+        let weekprice =0
         let user_dept=0
         for (let i of report){
             console.log(i)
             if(i.user){
                 html +=`  <tr>
                 <td align ="center">${i.name}</td>
-                <td align ="center">${i.price}</td>
+                <td align ="center">${i.price/i.quantity}</td>
                 <td align ="center">${i.quantity}</td>
-                <td align ="center">${i.date.toDateString()}</td>
+                <td align ="center">${i.price}</td>
+                <td align ="center">${jalali(i.date , 'YYYY-M-D HH:mm:ss').locale('fa').format('YYYY/M/D')}</td>
             </tr>
             `
             weekprice +=i.price ;
             user_dept = i.user.deptPrice ;
-
+            console.log(i.date);
         }
         }
         html += `</table>
@@ -211,7 +217,7 @@ class UserController{
             deviceScaleFactor: 1,
         });            
         await page.setContent(html);
-        await page.screenshot({path: filename });
+        await page.screenshot({path:filename , fullPage: true });
         await browser.close();
         ctx.replyWithDocument({ source: filename});
         setTimeout(FileMnager.rm, 10000, filename) ;
