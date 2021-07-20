@@ -15,7 +15,6 @@ class UserController{
     async  findUser(ctx){
         try {
         let user  = await User.findOne({chatId : ctx.chat.id}) ;
-        console.log(user)
         if (! user ){
             await ctx.reply('هنوز وارد نشده اید از /start استفاده کنید ') ; 
             return undefined;
@@ -176,7 +175,6 @@ class UserController{
         let weekprice =0
         let user_dept=0
         for (let i of report){
-            console.log(i)
             if(i.user){
                 html +=`  <tr>
                 <td align ="center">${i.name}</td>
@@ -188,7 +186,6 @@ class UserController{
             `
             weekprice +=i.price ;
             user_dept = i.user.deptPrice ;
-            console.log(i.date);
         }
         }
         html += `</table>

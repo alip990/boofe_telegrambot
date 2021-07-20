@@ -21,13 +21,14 @@ require('dotenv').config();
 mongoose.connect(process.env.DATABASE)
         .then(()=> console.log('connected to MongoDB ..'))
         .catch(err => console.log('could not connect to database'));
-console.log(process.env.TOKEN)
+console.log('token : '+process.env.TOKEN)
 const Token = process.env.TOKEN //config.get('bot.Token') 
 // const state = new State() ;
 
 const bot = new Telegraf(Token)
 bot.use(session()) ;
 bot.use(async (ctx, next)=>{  // store message id 
+    try{
     ctx.session ??= { counter: 0  ,messagesId  :  []   }
     const originalReply = ctx.reply.bind(ctx)
     ctx.reply = async function () {
@@ -38,18 +39,21 @@ bot.use(async (ctx, next)=>{  // store message id
     }
 
 
-    const update = ctx.update.message || ctx.update.callback_query.message;
+    const update = ctx.update.message || ctx.update.callback_query.message || ctx;
     if (update.message_id)
         if (!ctx.session.messagesId.includes(update.message_id) ){
             ctx.session.messagesId.push(update.message_id) ;
             }   
     next()
+    }catch(err){
+        console.log(err)
+    }
+
 })
 bot.use(async (ctx, next) => 
-{       
+{   try{ 
     let admin =await  Admin.findOne({chatId : ctx.chat.id })
     if(admin){
-        console.log(admin)
         ctx.session.admin = admin ;
     }else{
         let user = await User.findOne({chatId : ctx.chat.id })
@@ -72,11 +76,14 @@ bot.use(async (ctx, next) =>
             return ; 
         }
     }
-    
     next(); 
+    }catch(err){
+        console.log(err)
+        ctx.reply('دوباره امتحان کنید')
+    }
   })
 bot.use(async (ctx, next) => { //check admin access
-    
+    try{
     if(!ctx.session.admin && ctx.message){
         for(let i in Commands.Admin){
             if(Commands.Admin[i]== ctx.message.text){
@@ -85,6 +92,9 @@ bot.use(async (ctx, next) => { //check admin access
         }
     }
     next()
+    }catch(err){
+        console.log(err)
+    }
 })
 bot.hears('phone', async(ctx, next) => {
     await ctx.reply(ctx.chat.id, 'نیاز به شماره تلفن شما داریم اجازه میدهید?', keyboardSample.requestPhoneKeyboard);
@@ -234,7 +244,6 @@ bot.action(predicateFn, async  (ctx) => {
 bot.on("contact",async (ctx)=>{
         
     user =  await User.findOne({chatId : ctx.chat.id }); 
-    console.log(user.state)
     if (user.state == state.USER.WAITEFORPHONE){
         if (user.chatId != ctx.message.contact.user_id){
             ctx.reply('شماره تلفن خود را وارد کنید')
@@ -253,7 +262,6 @@ bot.on("contact",async (ctx)=>{
 
 bot.on('text', async (ctx) => {
         
-    console.log(' in text')
     let admin = await adminController.findAdmin(ctx) 
     if (admin){ //admin text 
         //console.log('admin text  ');

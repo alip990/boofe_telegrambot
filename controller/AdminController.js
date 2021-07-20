@@ -310,7 +310,8 @@ class AdminController{
             await page.screenshot({path: filename,fullPage: true });
             await browser.close();
             ctx.replyWithDocument({ source: filename});
-            setTimeout(FileMnager.rm, 10000, filename) ;        }catch(err){
+            setTimeout(FileMnager.rm, 10000, filename) ;        }
+            catch(err){
             console.log(err);
         }
           
