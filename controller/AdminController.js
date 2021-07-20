@@ -1,3 +1,5 @@
+const FileMnager =require('fs/promises');
+
 const state  = require('../models/state') ; 
 const  mongoose = require ('mongoose');
 const Admin = require ('../models/admin') ;
@@ -201,7 +203,7 @@ class AdminController{
             html+=` </body>
             </html>`;
             
-            let timestmp =  Date.now()
+        let filename =  "./images/" +Date.now() +".png"
         
         const browser = await puppeteer.launch();
         const page = await browser.newPage();
@@ -211,10 +213,10 @@ class AdminController{
             deviceScaleFactor: 1,
         });            
         await page.setContent(html);
-        await page.screenshot({path: "./images/" +timestmp +".png" });
+        await page.screenshot({path: filename , fullPage: true });
         await browser.close();
-        ctx.replyWithPhoto({ source: './images/'+timestmp+".png"});
-
+        ctx.replyWithDocument({ source: filename});
+        setTimeout(FileMnager.rm, 10000, filename) ;
         }catch(err){
             console.log(err);
         }
@@ -288,7 +290,7 @@ class AdminController{
             html+=` </body>
             </html>`;
                         
-            let timestmp =  Date.now()
+            let filename =  "./images/" +Date.now() +".png"
             const browser = await puppeteer.launch();
             const page = await browser.newPage();
             await page.setViewport({
@@ -297,11 +299,10 @@ class AdminController{
                 deviceScaleFactor: 1,
             });            
             await page.setContent(html);
-            await page.screenshot({path: "./images/" +timestmp +".png" });
+            await page.screenshot({path: filename,fullPage: true });
             await browser.close();
-            ctx.replyWithPhoto({ source: './images/'+timestmp+".png"});
-
-        }catch(err){
+            ctx.replyWithDocument({ source: filename});
+            setTimeout(FileMnager.rm, 10000, filename) ;        }catch(err){
             console.log(err);
         }
           

@@ -11,12 +11,13 @@ const kalaController  = require('./controller/KalaController');
 const keyboardSample = require ('./models/Keyboard');
 const UserController = require('./controller/UserController');
 const Commands = require('./models/commands.json'); 
-const { CONNREFUSED } = require('dns');
-mongoose.connect('mongodb://localhost/mydatabase')
+
+require('dotenv').config();
+mongoose.connect(process.env.DATABASE)
         .then(()=> console.log('connected to MongoDB ..'))
         .catch(err => console.log('could not connect to database'));
-
-const Token = "1807114273:AAEOmls4fpqmYC5dlX8gzsye97Orlh7XLss"//config.get('bot.Token') 
+console.log(process.env.TOKEN)
+const Token = process.env.TOKEN //config.get('bot.Token') 
 // const state = new State() ;
 
 const bot = new Telegraf(Token)
@@ -273,7 +274,7 @@ bot.on('text', async (ctx) => {
 
 bot.launch()
 
-// // Enable graceful stop
+// // Enable graceful stopno
 // process.once('SIGINT', () => bot.stop('SIGINT'))
 // process.once('SIGTERM', () => bot.stop('SIGTERM'))
 

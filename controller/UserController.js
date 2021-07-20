@@ -1,3 +1,4 @@
+const FileMnager =require('fs/promises');
 const state  = require('../models/state') ; 
 const  mongoose = require ('mongoose')
 const Admin = require ('../models/admin')
@@ -7,7 +8,6 @@ const BuyedItem = require('../models/buyeditem');
 const keyboardSample = require ('../models/Keyboard');
 const puppeteer = require('puppeteer');
 const AdminController = require('./AdminController');
-
 class UserController{
     constructor(){
     }
@@ -31,23 +31,31 @@ class UserController{
             ctx.session.kalaname =kalaname
             user.state= state.USER.BUYKALAQUNTITY
             user.save();
-            ctx.reply('تعداد را وارد کنید')
+            ctx.reply(` تعداد  ${kalaname} را وارد کنید`)
             //this.deleteLastmessage(ctx ,  'تعداد را وارد کنید');
         }
         else if(user.state == state.USER.BUYKALAQUNTITY) {
-            let kala = await Kala.findOne({name :ctx.session.kalaname});
-            
-            let  qu=parseInt(ctx.message.text) ; 
+            var qu =0
+            try{
+                qu=parseInt(ctx.message.text) ; 
                 if(!qu) {
                     await ctx.reply('ورودی باید عدد باشد ' ) ;
                     return ; 
                 }
+            }catch(err){
+                if (kalaname){
+                    ctx.session.kalaname =kalaname
+                    ctx.reply(` تعداد  ${kalaname} را وارد کنید`)
+                    return 
+                }
+            }
+            let kala = await Kala.findOne({name :ctx.session.kalaname});
             if(kala.availbequantity-qu >= 0 ) {
                 let buyedlist = new BuyedItem()
                 buyedlist.name =kala.name ; 
                 buyedlist.price =kala.price *qu ;
-                buyedlist.quantity = qu ;
                 buyedlist.user = user._id ;
+                buyedlist.quantity = qu ;
                 user.deptPrice += kala.price *qu ; 
                 user.state = state.NOTHING ;
                 kala.availbequantity -=qu ; 
@@ -66,28 +74,7 @@ class UserController{
     }
 
     }
-    // async getWeecklyReport(ctx){
-    //     this.deleteLastmessage(ctx  , ctx.message.message_id) ;
-    //     let report = await BuyedItem.find().where('date').gt(new Date(new Date() - 7 * 60 * 60 * 24 * 1000)) .populate({path:'user' , match: { chatId: { $eq: ctx.chat.id } }, });
-    //     console.log(report);
-    //     let text =''
-    //     let weekprice =0
-    //     for (let i of report) {
-    //         if (i.user){
-    //         let d= new Date(i.date) 
-    //         text += i.name + "   " +i.price + "   " +d.getMonth()+'/'+ d.getDay()  + " \n" ;
-    //         weekprice +=i.price ;}
-    //     }
-    //     if (text == ''){
-    //         text = 'گزارشی نیست '  ;
-    //         let x = await ctx.reply(text); 
-    //         return 
-    //     }
-    //     text = 'گزارش هفتگی \n' + text  ; 
-    //     text += ' : جمع کل ' + weekprice + ' \n'
-    //     //text += 'بدهی کل : ' + report[0].user.deptPrice ;       
-    //     await ctx.reply(text) ;      
-    //     }
+
     async getWeecklyReport(ctx){
         try{
         let report = await BuyedItem.find().where('date').gt(new Date(new Date() - 7 * 60 * 60 * 24 * 1000)) .populate({path:'user' , match: { chatId: { $eq: ctx.chat.id } }, });
@@ -143,7 +130,7 @@ class UserController{
         </body>
         </html>`;
 
-        let timestmp =  Date.now()
+        let filename =  "./images/" +Date.now() +".png"
         
         const browser = await puppeteer.launch();
         const page = await browser.newPage();
@@ -153,10 +140,11 @@ class UserController{
             deviceScaleFactor: 1,
         });            
         await page.setContent(html);
-        await page.screenshot({path: "./images/" +timestmp +".png" });
+        await page.screenshot({path:filename , fullPage: true });
         await browser.close();
         this.deleteLastmessage(ctx  , ctx.message.message_id) ;
-        ctx.replyWithPhoto({ source: './images/'+timestmp+".png"});
+        ctx.replyWithDocument({ source: filename});
+        setTimeout(FileMnager.rm, 10000, filename) ;
         }catch(err){
             console.log(err)
         }
@@ -213,7 +201,7 @@ class UserController{
         </body>
         </html>`;
 
-        let timestmp =  Date.now()
+        let filename =  "./images/" +Date.now() +".png"
         
         const browser = await puppeteer.launch();
         const page = await browser.newPage();
@@ -223,10 +211,11 @@ class UserController{
             deviceScaleFactor: 1,
         });            
         await page.setContent(html);
-        await page.screenshot({path: "./images/" +timestmp +".png" });
+        await page.screenshot({path: filename });
         await browser.close();
-        ctx.replyWithPhoto({ source: './images/'+timestmp+".png"});
-        }catch(err){
+        ctx.replyWithDocument({ source: filename});
+        setTimeout(FileMnager.rm, 10000, filename) ;
+            }catch(err){
             console.log(err)
         }
     }

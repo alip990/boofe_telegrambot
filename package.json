@@ -1,6 +1,8 @@
 {
   "dependencies": {
     "chromium": "^3.0.2",
+    "dotenv": "^10.0.0",
+    "jalali-moment": "^3.3.10",
     "mongoose": "^5.13.2",
     "node-html-to-image": "^3.2.0",
     "puppeteer-core": "^10.1.0",
