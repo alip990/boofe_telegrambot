@@ -7,11 +7,11 @@ class KeyboardSample{
                 "one_time_keyboard": true,
                 "keyboard": [
                     [{  
-                        text: Commands.User.PhoneNumber,
+                        text: "بله",
                         request_contact: true,
                         one_time_keyboard: true
                     }],
-                    ["Cancel"]
+                    ["خیر"]
                 ]
             }
         };

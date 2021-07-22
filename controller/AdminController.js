@@ -331,9 +331,9 @@ class AdminController{
         let user = await User.findOne({_id : ctx.session.users[index-1]._id })
         await Payment.create({user : ctx.session.users[index-1]._id  , price:user.deptPrice})
         user.deptPrice=0;
+        user.state= state.NOTHING ; 
         user.save();
         ctx.reply('حساب ' +ctx.session.users[index-1].name + " تسویه شد" )
-        ctx.session.counter +=2;
         }catch(err){
             console.log(err)
         }

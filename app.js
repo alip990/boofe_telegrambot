@@ -84,9 +84,10 @@ bot.use(async (ctx, next) =>
   })
 bot.use(async (ctx, next) => { //check admin access
     try{
-    if(!ctx.session.admin && ctx.message){
+    if((!ctx.session.admin) && ctx.message){
         for(let i in Commands.Admin){
-            if(Commands.Admin[i]== ctx.message.text){
+            if(Commands.Admin[i] == ctx.message.text){
+                ctx.reply('شما دسترسی ندارید')
                 return 
             }
         }
@@ -101,7 +102,7 @@ bot.hears('phone', async(ctx, next) => {
 })
 bot.command('start',async (ctx) =>{ 
     let admin = await adminController.findAdmin(ctx) ;
-        
+    try{
     if(admin){
         ctx.reply( ' سلام خوش امدید', keyboardSample.Adminkeyboard);
         adminController.clearState(ctx , admin )
@@ -111,15 +112,25 @@ bot.command('start',async (ctx) =>{
     if( ! user ){
     /// console.log('in singup')
         user = new User({
-                        name : ctx.chat.first_name + ctx.chat.last_name , 
+                        name : (ctx.chat.last_name  === null || ctx.chat.last_name  === undefined) ? ctx.chat.first_name  : ctx.chat.first_name+ctx.chat.last_name  ,
                         chatId : ctx.chat.id , 
                         state : state.USER.WAITEFORPHONE });     
         await user.save()
-        ctx.reply('نیاز به شماره تلفن شما داریم اجازه میدهید?', keyboardSample.requestPhoneKeyboard);
+        ctx.reply(' نیاز به شماره تلفن شما داریم اجازه دسترسی می دهید؟', keyboardSample.requestPhoneKeyboard);
     }else{    
-        ctx.reply(' سلام خوش امدید'  + ctx.chat.first_name, keyboardSample.Userkeyboard) ;
+        ctx.reply(' سلام خوش امدید '  + ctx.chat.first_name, keyboardSample.Userkeyboard) ;
+        ctx.reply(`راهنمایی :
+        🛒خرید کالا : اگه کالایی رو از بوفه خریدید اونو از این قسمت ثبت کنید
+        حذف از حساب : اگه کالایی رو اشتباه وارد کردید  حذفش کنید !
+        گزارش هفتگی : ببینید تو طول هفته چی خریدید
+        گزارش ماهانه : ببینید تو طول ماه چی خریدید 
+        `)
         await userController.clearState(ctx , user)
-}
+    }
+    }catch(err){
+        console.log(err)
+    }
+
 
 })
 bot.command('MakeMeAdmin',async (ctx)=>{  
@@ -184,7 +195,7 @@ bot.hears(Commands.User.BuyKala,async(ctx)=>{
 })
 bot.hears(Commands.Admin.Checkout,async(ctx)=>{    
     let users =await  User.find().select('name deptPrice')
-    await Admin.updateOne({chatId: ctx.chat.id , state: state.ADMIN.USERCHECKOUT});
+    await Admin.updateOne({chatId: ctx.chat.id , state: state.ADMIN.USERCHECKOUT.SELECTUSER});
     ctx.session.users = users
     let text = ''
     let index = 0 
@@ -277,7 +288,7 @@ bot.on('text', async (ctx) => {
         else if (admin.state == state.ADMIN.ADDQUNTITY.PRICE){
             adminController.addquantity(ctx , admin)
         }
-        else if(admin.state == state.ADMIN.USERCHECKOUT){
+        else if(admin.state == state.ADMIN.USERCHECKOUT.SELECTUSER){
             adminController.checkout(ctx,ctx.message.text )
         }
     }else {
@@ -295,6 +306,19 @@ bot.on('text', async (ctx) => {
 
 
 bot.launch()
+
+
+process.on('uncaughtException', function (err) {
+    console.log("...");
+    console.error(err);
+    console.log("...");
+    try{
+        bot.launch()
+    }
+    catch(err){
+        console.log(err)
+    }
+  });
 
 // // Enable graceful stopno
 // process.once('SIGINT', () => bot.stop('SIGINT'))

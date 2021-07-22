@@ -148,7 +148,8 @@ class UserController{
         this.deleteLastmessage(ctx  , ctx.message.message_id) ;
         ctx.replyWithDocument({ source: filename});
         setTimeout(FileMnager.rm, 10000, filename) ;
-        }catch(err){
+        await this.clearState(ctx)
+    }catch(err){
             console.log(err)
         }
     }
@@ -218,6 +219,8 @@ class UserController{
         await browser.close();
         ctx.replyWithDocument({ source: filename});
         setTimeout(FileMnager.rm, 10000, filename) ;
+        await this.clearState(ctx,user)
+
             }catch(err){
             console.log(err)
         }
@@ -251,7 +254,7 @@ class UserController{
         }else 
             {
                 await this.getWeecklyReport(ctx)
-                ctx.reply("ردیف را برای حذف وارد کنید")
+                ctx.reply("عکس بالا رو ببینید و ردیفی رو که میخواهید حذف کنید وارد کنید")
             user.state = state.USER.DELETEORDER  ;
              await user.save()
 
@@ -260,8 +263,12 @@ class UserController{
 
   
     async clearState( ctx , user){
-        user.state = state.NOTHING ; 
-        await user.save();
+        if(user){
+            user.state = state.NOTHING ; 
+            await user.save();
+        }else {
+            User.updateOne({chatId :ctx.chat.id,},{state :state.NOTHING})
+        }
 
     }
     async adminCheckPass(ctx){
