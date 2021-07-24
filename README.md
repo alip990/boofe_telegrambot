@@ -1,2 +1,4 @@
 DATABASE = mongodb
-run : node app.js 
+##run 
+##### npm i
+##### node app.js 
