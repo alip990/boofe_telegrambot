@@ -101,6 +101,7 @@ bot.hears('phone', async(ctx, next) => {
     await ctx.reply(ctx.chat.id, 'نیاز به شماره تلفن شما داریم اجازه میدهید?', keyboardSample.requestPhoneKeyboard);
 })
 bot.command('start',async (ctx) =>{ 
+    console.log(ctx.chat)
     let admin = await adminController.findAdmin(ctx) ;
     try{
     if(admin){
@@ -119,12 +120,6 @@ bot.command('start',async (ctx) =>{
         ctx.reply(' نیاز به شماره تلفن شما داریم اجازه دسترسی می دهید؟', keyboardSample.requestPhoneKeyboard);
     }else{    
         ctx.reply(' سلام خوش امدید '  + ctx.chat.first_name, keyboardSample.Userkeyboard) ;
-        ctx.reply(`راهنمایی :
-        🛒خرید کالا : اگه کالایی رو از بوفه خریدید اونو از این قسمت ثبت کنید
-        حذف از حساب : اگه کالایی رو اشتباه وارد کردید  حذفش کنید !
-        گزارش هفتگی : ببینید تو طول هفته چی خریدید
-        گزارش ماهانه : ببینید تو طول ماه چی خریدید 
-        `)
         await userController.clearState(ctx , user)
     }
     }catch(err){
@@ -133,16 +128,23 @@ bot.command('start',async (ctx) =>{
 
 
 })
-bot.command('MakeMeAdmin',async (ctx)=>{  
+bot.command('help' ,async (ctx)=>{
+    ctx.reply(`سلام 
+    خرید کالا : اگر کالایی رو از بوفه خریدید ثبت کنید 
+    حذف از حساب : اگر کالایی رو اشتباه ثبت کردید از حسابتون حذف کنید. 
+    گزارش ها : برای مشاهده حسابتون به صورت ماهانه یا هفتگی این کامند رو بزنید.  
+    با تشکر`)
+})
+bot.command('login',async (ctx)=>{  
         let admin = await adminController.findAdmin(ctx);
         if(!admin){
             ctx.reply('پسورد را وارد کنید')
             await  User.updateOne({chatId : ctx.chat.id }, {state : state.USER.MAKEMEADMIN}) ;
         }else{
-            await ctx.reply(' قبلا ادمین بودید یکبار /start بزنید!');
+            await ctx.reply(' قبلا ادمین بودید یکبار /start بزنید!' );
         }
     })
-bot.command('Logout',async (ctx)=>{  
+bot.command('logout',async (ctx)=>{  
         let admin = await adminController.findAdmin(ctx);
         if(admin){
             await Admin.deleteOne({chatId :ctx.chat.id}) ;
@@ -194,17 +196,19 @@ bot.hears(Commands.User.BuyKala,async(ctx)=>{
     
 })
 bot.hears(Commands.Admin.Checkout,async(ctx)=>{    
-    let users =await  User.find().select('name deptPrice')
+    let users =await  User.find().select('name deptPrice phone')
     await Admin.updateOne({chatId: ctx.chat.id , state: state.ADMIN.USERCHECKOUT.SELECTUSER});
     ctx.session.users = users
-    let text = ''
+    let text = 'کاربران\n'
     let index = 0 
     for (i of users){
-        text += ++index + "- "+i.name  + "  ....   " + i.deptPrice  + ' تومان \n'; 
+        text += '‏' + ++index + "- "+ '‏' +i.name  +" : " +'‏' +i.phone+ "  -----   " +'‏'+ i.deptPrice  + ' تومان \n'; 
     }
+    text +='\n'
     await ctx.reply(text)
     await ctx.reply('شماره کابر را برای تسویه وارد کنید')
 })
+'‏'
 bot.hears(Commands.Admin.Stock, async (ctx)=> {
     kalaController.ShowkalasInlinewithQuantity(ctx)
     await ctx.reply('...',keyboardSample.Adminkeyboard) ;          
@@ -251,7 +255,6 @@ bot.action(predicateFn, async  (ctx) => {
     userController.buy_kala(ctx , kalaname = ctx.update.callback_query.data);
 
 }) ; 
-
 bot.on("contact",async (ctx)=>{
         
     user =  await User.findOne({chatId : ctx.chat.id }); 

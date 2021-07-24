@@ -42,6 +42,10 @@ class UserController{
                     await ctx.reply('ورودی باید عدد باشد ' ) ;
                     return ; 
                 }
+                else if(qu <= 0){
+                    await ctx.reply('ورودی باید عدد مثبت باشد ' ) ;
+                    return ; 
+                }
             }catch(err){
                 if (kalaname){
                     ctx.session.kalaname =kalaname
@@ -63,9 +67,9 @@ class UserController{
                 await kala.save() ;
                 await buyedlist.save() ;
                 this.deleteLastmessage(ctx ) ;
-                await ctx.reply( buyedlist.name+' به لیست خرید اضافه شد  ') ; 
+                await ctx.reply( buyedlist.name+' به خریدها اضافه شد  ') ; 
             }else {
-               await ctx.reply( '  موجودی کافی نیست .موجودی : '+ kala.availbequantity) ;
+               await ctx.reply( '  موجودی کافی نیست، میتوانید کالای دیگری رو انتخاب کنید .موجودی : '+ kala.availbequantity) ;
             }
             await user.save() ; 
         }
@@ -79,8 +83,7 @@ class UserController{
         try{
         let report = await BuyedItem.find().where('date').gt(new Date(new Date() - 7 * 60 * 60 * 24 * 1000)) .populate({path:'user' , match: { chatId: { $eq: ctx.chat.id } }, });
         ctx.session.map_index_order = {} 
-    
-
+        let flag_is_empty = true ;
         let html = 
 `<!DOCTYPE html>
 <html>
@@ -101,7 +104,7 @@ class UserController{
         let index = 1 ;
         for (let i of report){
             if(i.user){
-                
+                flag_is_empty = false  ;
                 html +=`  <tr>
                 <td align ="center"> ${index}- ${i.name}</td>
                 <td align ="center">${i.price/i.quantity}</td>
@@ -132,7 +135,10 @@ class UserController{
 </table>
         </body>
         </html>`;
-
+        if (flag_is_empty){
+            ctx.reply('گزارشی نیست. ') 
+            return {not_send : true}
+        }
         let filename =  "./images/" +Date.now() +".png"
         
         const browser = await puppeteer.launch();
@@ -158,7 +164,7 @@ class UserController{
         this.deleteLastmessage(ctx  , ctx.message.message_id) ;
         try{
         let report = await BuyedItem.find().where('date').gt(new Date(new Date() - 30 * 60 * 60 * 24 * 1000)) .populate({path:'user' , match: { chatId: { $eq: ctx.chat.id } }, });
-        
+        let flag_is_empty = true
         let html = 
 `<!DOCTYPE html>
 <html>
@@ -177,6 +183,7 @@ class UserController{
         let user_dept=0
         for (let i of report){
             if(i.user){
+                flag_is_empty =false
                 html +=`  <tr>
                 <td align ="center">${i.name}</td>
                 <td align ="center">${i.price/i.quantity}</td>
@@ -204,6 +211,11 @@ class UserController{
 </table>
         </body>
         </html>`;
+
+        if (flag_is_empty){
+            ctx.reply('گزارشی نیست. ') 
+            return {not_send : true}
+        }
 
         let filename =  "./images/" +Date.now() +".png"
         
@@ -253,7 +265,11 @@ class UserController{
 
         }else 
             {
-                await this.getWeecklyReport(ctx)
+                let flag = await this.getWeecklyReport(ctx) || {not_send :false}
+                if(flag.not_send){
+                    ctx.reply('هنوز کالایی را ثبت نکردید ! ')
+                    return 
+                }
                 ctx.reply("عکس بالا رو ببینید و ردیفی رو که میخواهید حذف کنید وارد کنید")
             user.state = state.USER.DELETEORDER  ;
              await user.save()
