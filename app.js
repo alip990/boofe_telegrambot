@@ -82,7 +82,7 @@ bot.use(async (ctx, next) =>
         ctx.reply('دوباره امتحان کنید')
     }
   })
-bot.use(async (ctx, next) => { //check admin access
+  bot.use(async (ctx, next) => { //check admin access
     try{
     if((!ctx.session.admin) && ctx.message){
         for(let i in Commands.Admin){

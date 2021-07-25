@@ -231,7 +231,7 @@ class UserController{
         await browser.close();
         ctx.replyWithDocument({ source: filename});
         setTimeout(FileMnager.rm, 10000, filename) ;
-        await this.clearState(ctx,user)
+        await this.clearState(ctx)
 
             }catch(err){
             console.log(err)
