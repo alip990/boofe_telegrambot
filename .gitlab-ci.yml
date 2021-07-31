@@ -1,30 +1,31 @@
 build:
   stage: build
   image:
-    name: gcr.io/kaniko-project/executor:debug
+    name: gcr.io/kaniko-project/debug:769
     entrypoint: ['']
   script:
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
     - >-
       /kaniko/executor 
-      --registry-mirror $PRIVATE_REGISTRY
       --context $CI_PROJECT_DIR 
       --dockerfile $CI_PROJECT_DIR/Dockerfile 
-      --destination $CI_REGISTRY_IMAGE:$IMAGE_TAG
+      --destination $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
   only:
     - master
+    - develop
   environment:
     name: $CI_COMMIT_REF_NAME
 
 
 deploy:
   stage: deploy
-  image: 
+  image:
     name: registry.gitlab.com/sajad_sadra/alpine-curl/master:latest
-    entrypoint: [""]
+    entrypoint: ['']
   script:
-    - curl -X POST "$SERVICE_HOOK"
+    - curl -X POST "$SERVICE_HOOK" ; curl -X POST "$SERVICE_HOOK_SCHEDULER"
   only:
     - master
+    - develop
   environment:
     name: $CI_COMMIT_REF_NAME
