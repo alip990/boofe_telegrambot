@@ -7,11 +7,12 @@ build:
     - mkdir -p /kaniko/.docker
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"auth\":\"$(echo -n ${CI_REGISTRY_USER}:${CI_REGISTRY_PASSWORD} | base64)\"}}}" > /kaniko/.docker/config.json
     - >-
-    /kaniko/executor 
-    --context $CI_PROJECT_DIR 
-    --dockerfile $CI_PROJECT_DIR/Dockerfile 
-    --registry-mirror $PRIVATE_REGISTRY 
-    --destination $CI_REGISTRY_IMAGE:$IMAGE_TAG
+      /kaniko/executor 
+      --registry-mirror $PRIVATE_REGISTRY
+      --context $CI_PROJECT_DIR 
+      --dockerfile $CI_PROJECT_DIR/Dockerfile 
+      --destination $CI_REGISTRY_IMAGE:$IMAGE_TAG
+
 
   only:
     - master
