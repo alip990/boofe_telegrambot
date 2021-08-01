@@ -9,6 +9,8 @@ build:
     
     - cat /kaniko/.docker/config.json
 
+    - sleep 1000
+    
     - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/Dockerfile --registry-mirror $PRIVATE_REGISTRY --destination $CI_REGISTRY_IMAGE:$IMAGE_TAG
 
   only:
